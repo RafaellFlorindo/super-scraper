@@ -1,0 +1,29 @@
+# dependências e build
+node_modules/
+.next/
+out/
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# segredos: NUNCA commitar
+.env
+.env.local
+.env*.local
+*.key
+*.pem
+
+# banco local e dados minerados
+*.db
+*.db-journal
+*.sqlite
+prisma/dev.db*
+
+# criativos baixados, imagens e vídeos gerados
+storage/
+
+# perfil do navegador usado na coleta
+.browser-profile/
+
+# sistema
+.DS_Store
+Thumbs.db

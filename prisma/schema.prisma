@@ -1,0 +1,357 @@
+// Banco local SQLite. Trocar para postgres depois = mudar provider + rodar migrate.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------- MINERAÇÃO
+
+/// Anunciante (a Page do Facebook que roda o anúncio).
+model Advertiser {
+  id        String   @id @default(cuid())
+  pageId    String   @unique
+  name      String
+  pageUrl   String?
+  createdAt DateTime @default(now())
+
+  ads Ad[]
+}
+
+/// Um anúncio único da Ad Library, identificado pelo library_id.
+model Ad {
+  id        String @id @default(cuid())
+  libraryId String @unique
+
+  advertiserId String
+  advertiser   Advertiser @relation(fields: [advertiserId], references: [id])
+
+  // dados crus da Ad Library
+  primaryText String?
+  headline    String?
+  description String?
+  ctaText     String?
+  ctaUrl      String? // link de destino, antes de resolver redirects
+  platforms   String  @default("[]") // JSON: ["facebook","instagram"]
+  countries   String  @default("[]") // JSON: ["BR"]
+
+  startedAt DateTime?
+  lastSeenAt DateTime  @default(now())
+  isActive  Boolean   @default(true)
+
+  /// Nº de criativos distintos rodando sob o mesmo texto/oferta.
+  /// Principal sinal de "escala": ninguém produz 12 variações de algo que não vende.
+  variantCount Int @default(1)
+
+  // classificação por LLM (preenchida pelo enrich worker)
+  niche      String?
+  angle      String? // ex: "prova social", "medo de ficar pra trás"
+  format     String? // vsl | ugc | carrossel | estatico | depoimento
+  language   String?
+  offerPrice String?
+  classifiedAt DateTime?
+
+  /// Score 0-100 de "quão escalado". Ver src/lib/scale-score.ts
+  scaleScore Int @default(0)
+
+  /// Score 0-100 de "isto é infoproduto, não negócio local".
+  /// Ver src/lib/infoproduct.ts
+  infoScore     Int     @default(0)
+  isInfoproduct Boolean @default(false)
+
+  embedding Bytes? // Float32Array serializado, para busca semântica
+
+  rawJson String @default("{}")
+
+  createdAt DateTime @default(now())
+
+  creatives  Creative[]
+  snapshots  AdSnapshot[]
+  funnel     Funnel?
+  savedBy    SavedAd[]
+  modeledBy  Project[]    @relation("Modelagem")
+
+  @@index([scaleScore])
+  @@index([niche])
+  @@index([isActive])
+  @@index([isInfoproduct])
+}
+
+// ---------------------------------------------------------- TRAQUEAMENTO
+
+/// Uma venda recebida por webhook da plataforma de checkout.
+///
+/// A atribuição é por UTM: você põe utm_campaign/utm_content no link do anúncio,
+/// a plataforma repassa no webhook, e aqui casamos venda com criativo.
+model Sale {
+  id String @id @default(cuid())
+
+  platform   String // kiwify | cakto | manual
+  externalId String // id da venda na plataforma
+  /// paid | pending | refunded | chargeback | canceled
+  status     String
+
+  /// Em centavos: dinheiro em float rende diferença de arredondamento.
+  amountCents Int
+  currency    String @default("BRL")
+
+  productName String?
+  /// Guardado mascarado: não precisamos do e-mail inteiro para medir campanha.
+  buyerMasked String?
+
+  /// pix | cartao | boleto | outros
+  paymentMethod String @default("outros")
+
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+
+  occurredAt DateTime
+  createdAt  DateTime @default(now())
+  rawJson    String   @default("{}")
+
+  @@unique([platform, externalId, status])
+  @@index([occurredAt])
+  @@index([utmCampaign])
+}
+
+/// Gasto de anúncio lançado à mão, por campanha e por dia.
+/// Sem isso não existe ROI — a plataforma de checkout só conhece a receita.
+model AdSpend {
+  id          String   @id @default(cuid())
+  utmCampaign String
+  day         DateTime
+  amountCents Int
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@unique([utmCampaign, day])
+  @@index([day])
+}
+
+/// Log cru de tudo que chega nos webhooks, inclusive o que falhou em processar.
+/// É o que salva a vida quando uma plataforma muda o formato do payload.
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  platform  String
+  ok        Boolean
+  error     String?
+  bodyJson  String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Configuração editável pela interface (chaves de API, provider de IA...).
+/// Valores sensíveis ficam cifrados — ver src/lib/settings.ts.
+model Setting {
+  key       String   @id
+  value     String
+  encrypted Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+/// Linha única que o worker atualiza a cada ciclo. A interface usa isto para
+/// avisar quando o worker está parado, em vez de deixar o job pendurado.
+model WorkerHeartbeat {
+  id     String   @id @default("singleton")
+  beatAt DateTime @updatedAt
+}
+
+/// Uma execução de mineração disparada pela interface.
+model MiningRun {
+  id        String   @id @default(cuid())
+  query     String
+  country   String   @default("BR")
+  limit     Int      @default(40)
+  status    String   @default("running") // running | done | failed
+  found     Int      @default(0)
+  error     String?
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+}
+
+/// Foto diária do estado do anúncio. É a série temporal disso que revela escala.
+model AdSnapshot {
+  id           String   @id @default(cuid())
+  adId         String
+  ad           Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  seenAt       DateTime @default(now())
+  variantCount Int
+  isActive     Boolean
+
+  @@index([adId, seenAt])
+}
+
+/// Imagem ou vídeo do anúncio. Vídeos podem ter transcrição (VSL).
+model Creative {
+  id     String @id @default(cuid())
+  adId   String
+  ad     Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  kind      String // image | video
+  sourceUrl String @unique
+  localPath String? // preenchido pelo media worker
+  bytes     Int?
+
+  /// MD5 do arquivo baixado. As URLs da Meta são assinadas e mudam a cada
+  /// coleta, e o mesmo vídeo ainda aparece em versão HD e SD — só o conteúdo
+  /// identifica de verdade. Duplicata no mesmo anúncio é removida por aqui.
+  contentHash String?
+
+  transcript     String?
+  transcribedAt  DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([adId, contentHash])
+}
+
+/// Resultado de seguir o clique do anúncio: LP -> checkout -> upsells.
+model Funnel {
+  id   String @id @default(cuid())
+  adId String @unique
+  ad   Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  finalUrl     String?
+  platform     String? // hotmart | kiwify | eduzz | proprio | ...
+  detectedPrice String?
+  stepsJson    String  @default("[]") // [{url, title, screenshot, price}]
+  clonedPath   String? // pasta do clone da LP, se clonada
+
+  analyzedAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------- ESTÚDIO IA
+
+model Project {
+  id        String   @id @default(cuid())
+  title     String
+  status    String   @default("rascunho") // rascunho | publicado
+  createdAt DateTime @default(now())
+
+  /// O anúncio que este projeto está modelando. É ele que abastece o briefing
+  /// dos três agentes e serve de referência para a fábrica de criativos.
+  modeledAdId String?
+  modeledAd   Ad?     @relation("Modelagem", fields: [modeledAdId], references: [id], onDelete: SetNull)
+
+  /// Dados da SUA oferta, para os agentes não escreverem no vácuo.
+  ownerOffer String?
+
+  conversations Conversation[]
+  savedAds      SavedAd[]
+  creatives     GeneratedCreative[]
+}
+
+/// Criativo gerado para a nossa oferta, a partir de um criativo do concorrente.
+model GeneratedCreative {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  /// Criativo original que serviu de molde (pode ter sido apagado depois).
+  sourceCreativeId String?
+
+  angle       String?
+  hook        String?
+  script      String?
+  /// Roteiro de gravação cena a cena, espelhando a estrutura visual do vídeo
+  /// do concorrente. Só existe quando o molde escolhido é um vídeo.
+  storyboard  String?
+  primaryText String?
+  headline    String?
+  /// Prompt de imagem em inglês, para o gerador.
+  imagePrompt String?
+  /// Caminho da imagem gerada, quando houver.
+  imagePath   String?
+
+  createdAt DateTime @default(now())
+
+  renders VideoRender[]
+
+  @@index([projectId, createdAt])
+}
+
+/// Um vídeo montado a partir do roteiro de um criativo gerado.
+model VideoRender {
+  id                  String            @id @default(cuid())
+  generatedCreativeId String
+  creative            GeneratedCreative @relation(fields: [generatedCreativeId], references: [id], onDelete: Cascade)
+
+  status String @default("pending") // pending | running | done | failed
+  error  String?
+
+  voice     String @default("pt-BR-FranciscaNeural")
+  /// Cenas planejadas: [{narration, onScreenText, seconds}]
+  scenesJson String @default("[]")
+
+  localPath   String?
+  durationSec Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generatedCreativeId])
+}
+
+/// Anúncio minerado que o usuário anexou a um projeto — vira contexto dos agentes.
+model SavedAd {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  adId      String
+  ad        Ad      @relation(fields: [adId], references: [id], onDelete: Cascade)
+  note      String?
+
+  @@unique([projectId, adId])
+}
+
+/// Uma thread por agente dentro do projeto.
+model Conversation {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agent     String // optimus | lapidador | fabrica
+  createdAt DateTime @default(now())
+
+  messages Message[]
+
+  @@unique([projectId, agent])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // user | assistant | system
+  content        String
+  saved          Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ---------------------------------------------------------------- FILA
+
+/// Fila de jobs em SQLite. Sem Redis: um worker só, polling a cada 2s.
+model Job {
+  id        String   @id @default(cuid())
+  kind      String // mine | media | transcribe | enrich | funnel
+  payload   String   @default("{}")
+  status    String   @default("pending") // pending | running | done | failed
+  /// Maior roda primeiro. Mineração disparada pela interface fura a fila de
+  /// enriquecimento, senão o usuário espera centenas de jobs de fundo.
+  priority  Int      @default(0)
+  attempts  Int      @default(0)
+  error     String?
+  runAfter  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, priority, runAfter])
+}
