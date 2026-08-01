@@ -1,21 +1,21 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "Scrapper",
+  title: "Super Scraper",
   description: "Mineração da Biblioteca de Anúncios da Meta",
 };
 
+/**
+ * Layout raiz enxuto de propósito: só o casco do documento.
+ *
+ * A barra lateral e a checagem de sessão vivem em (app)/layout.tsx, para que
+ * login, instalação e as páginas clonadas em /p/ não herdem nada disso.
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 overflow-x-hidden">{children}</main>
-        </div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

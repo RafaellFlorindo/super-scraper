@@ -189,6 +189,79 @@ npm run webhooks -- --failed   # payload inteiro do que falhou
 npm run clear-sales   # limpa os dados de teste
 ```
 
+## Login
+
+Na primeira execução o app abre em `/instalar` e pede a conta de administrador.
+Depois disso, tudo fica protegido.
+
+```bash
+npm run usuarios                                     # lista contas
+npm run usuarios -- add email@x.com "Nome" senha     # cria
+npm run usuarios -- senha email@x.com novasenha      # troca (encerra as sessões)
+npm run usuarios -- rm email@x.com                   # remove
+npm run test-auth                                    # confere as rotas protegidas
+```
+
+Como funciona, e por quê:
+
+- Senha com **scrypt** e sal por usuário. SHA direto é rápido demais, e o que é
+  rápido de calcular é rápido de quebrar em lote.
+- Comparação em **tempo constante**, senão a duração da resposta vaza o quanto do
+  hash bateu.
+- No banco fica o **hash do token de sessão**, não o token. Vazou o banco,
+  ninguém entra com o que está lá.
+- Erro de login é genérico ("e-mail ou senha incorretos") e o scrypt roda mesmo
+  sem usuário: dizer "este e-mail não existe" entrega quais contas existem.
+- Cookie `httpOnly`, então JavaScript da página não lê e XSS não rouba a sessão.
+
+A checagem acontece em dois lugares, de propósito. O `middleware.ts` roda no edge
+e só verifica se o cookie existe, porque o Prisma não roda lá. Quem valida o token
+de verdade é `(app)/layout.tsx`, em Node, cobrindo toda página filha.
+
+Ficam abertas sem sessão apenas `/api/webhook/*` (quem chama é a plataforma de
+checkout) e `/p/*` (as páginas clonadas, que precisam abrir em qualquer navegador).
+
+## Histórico
+
+Cada coleta grava um `AdSnapshot`. Comparar o snapshot mais antigo com o mais
+recente dentro da janela responde o que interessa num espião de anúncios:
+
+| Seção | O que significa |
+|---|---|
+| Escalando agora | ganharam variações; ninguém produz variação do que não vende |
+| Perdendo força | cortaram variações, sinal de criativo cansado |
+| Saíram do ar | estavam rodando e pararam |
+| Mudaram de preço | o concorrente testou outro valor |
+| Novos no radar | vistos numa coleta só, sem comparação possível |
+
+Anúncio com uma coleta só nunca aparece como "subiu": sem dois pontos não existe
+tendência, e apresentá-lo como crescimento seria inventar. Pela mesma razão o mini
+gráfico na página do anúncio diz "aparece a partir da segunda coleta" em vez de
+desenhar uma reta.
+
+Para o histórico encher, **minere o mesmo nicho de novo depois de alguns dias**.
+
+## Páginas clonadas
+
+Baixa a página do concorrente, hospeda em `/p/{slug}` e faz duas limpezas que
+mudam tudo:
+
+**Remove os rastreadores dele.** Clonar com o Pixel intacto faz cada visita sua
+alimentar o público de remarketing do concorrente, com o seu dinheiro. É o erro
+mais caro de quem clona página.
+
+**Neutraliza os links de compra.** Página clonada com o checkout original manda a
+sua venda para ele. Aqui viram `#`, marcados com `data-checkout-original` para
+você achar e trocar.
+
+```bash
+npm run clones        # estado dos clones
+npm run test-clone    # confere que nenhum rastreador sobreviveu
+```
+
+> O clone serve para estudar estrutura. Publicar cópia literal de página alheia é
+> violação de direito autoral: troque textos, imagens e oferta antes de usar.
+
 ## Modelagem
 
 O fluxo central do app:
@@ -431,10 +504,10 @@ medição de faturamento.
 | Montagem de vídeo (narração + cenas + ffmpeg) | ✅ grátis |
 | Vídeo generativo (Veo / Kling / avatar UGC) | ⬜ pago, não decidido |
 | Transcrição de VSL | ✅ |
-| Clonagem + hospedagem de página | ⬜ não iniciado |
+| Clonagem + hospedagem de página | ✅ |
 | Traqueamento de vendas (Kiwify + Cakto) | ✅ |
-| Histórico de concorrentes minerados | ⬜ não iniciado |
-| Multiusuário / login | ⬜ não iniciado |
+| Histórico de concorrentes minerados | ✅ |
+| Login e contas | ✅ |
 
 ## Hospedar na Vercel
 
@@ -451,5 +524,5 @@ O caminho é dividir: interface e webhooks na Vercel, mineração e worker no se
 ou numa VPS, os dois apontando para o mesmo Postgres. A troca de banco é mudar o
 `provider` no `schema.prisma` e rodar a migração — o código não muda.
 
-Antes de expor na internet, **falta login**: hoje qualquer um com a URL vê o
-dashboard e edita as chaves de API.
+O login já existe, então expor o app na internet não deixa mais o dashboard e as
+chaves de API abertos para quem tiver a URL.

@@ -36,6 +36,10 @@
     "test-video": "tsx scripts/test-video.ts",
     "video-debug": "tsx scripts/video-debug.ts",
     "shot": "tsx scripts/shot.ts",
+    "clones": "tsx scripts/clones.ts",
+    "test-clone": "tsx scripts/test-clone.ts",
+    "test-auth": "tsx scripts/test-auth.ts",
+    "usuarios": "tsx scripts/usuarios.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

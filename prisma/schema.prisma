@@ -73,6 +73,7 @@ model Ad {
   funnel     Funnel?
   savedBy    SavedAd[]
   modeledBy  Project[]    @relation("Modelagem")
+  clones     ClonedPage[]
 
   @@index([scaleScore])
   @@index([niche])
@@ -184,8 +185,66 @@ model AdSnapshot {
   seenAt       DateTime @default(now())
   variantCount Int
   isActive     Boolean
+  /// Guardados junto para o histórico mostrar quando o anúncio escalou e quando
+  /// o concorrente mexeu no preço, sem precisar recalcular nada depois.
+  scaleScore   Int      @default(0)
+  price        String?
 
   @@index([adId, seenAt])
+  @@index([seenAt])
+}
+
+/// Página de concorrente clonada e hospedada localmente.
+model ClonedPage {
+  id    String  @id @default(cuid())
+  adId  String?
+  ad    Ad?     @relation(fields: [adId], references: [id], onDelete: SetNull)
+
+  sourceUrl String
+  /// Endereço público dentro do app: /p/{slug}
+  slug      String  @unique
+  title     String?
+
+  status String  @default("pending") // pending | running | done | failed
+  error  String?
+
+  /// Pasta em storage/clones/{id}
+  localDir String?
+  bytes    Int     @default(0)
+  files    Int     @default(0)
+  /// Quantos rastreadores do concorrente foram removidos.
+  strippedTrackers Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+// ------------------------------------------------------------ USUÁRIOS
+
+/// Conta de acesso. Sem isto, quem tiver a URL vê faturamento e edita chaves.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  /// admin gerencia usuários; user usa o app
+  role         String   @default("user")
+  createdAt    DateTime @default(now())
+
+  sessions Session[]
+}
+
+model Session {
+  /// O próprio token, guardado com hash: vazamento do banco não vira acesso.
+  tokenHash String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 /// Imagem ou vídeo do anúncio. Vídeos podem ter transcrição (VSL).

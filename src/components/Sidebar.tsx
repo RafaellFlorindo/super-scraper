@@ -36,17 +36,37 @@ const ICONS: Record<string, React.ReactNode> = {
       <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
     </>
   ),
+  historico: (
+    <>
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 4v4h4M12 7v5l3 2" />
+    </>
+  ),
+  clones: (
+    <>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M15 5H5a2 2 0 0 0-2 2v10" />
+    </>
+  ),
 };
 
 const NAV = [
   { href: "/", icon: "banco", label: "Banco de Anúncios", hint: "minerar e filtrar" },
+  { href: "/historico", icon: "historico", label: "Histórico", hint: "quem está escalando" },
   { href: "/projetos", icon: "agentes", label: "Estúdio de Agentes", hint: "modelar e criar" },
   { href: "/traqueamento", icon: "traqueamento", label: "Traqueamento", hint: "vendas e ROI" },
   { href: "/funis", icon: "funis", label: "Funis", hint: "destinos mapeados" },
+  { href: "/clones", icon: "clones", label: "Páginas Clonadas", hint: "clonar e hospedar" },
   { href: "/config", icon: "config", label: "Configurações", hint: "chaves e coleta" },
 ];
 
-export default function Sidebar() {
+interface UserInfo {
+  name: string;
+  email: string;
+  role: string;
+}
+
+export default function Sidebar({ user }: { user: UserInfo }) {
   const pathname = usePathname();
 
   return (
@@ -65,7 +85,7 @@ export default function Sidebar() {
       />
       <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-gold-500/25 to-transparent" />
 
-      <div className="relative flex h-full flex-col p-4">
+      <div className="relative flex min-h-screen flex-col p-4">
         <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
           <svg viewBox="0 0 32 32" className="h-6 w-6 text-gold-400" aria-hidden>
             <path d="M18.5 3 8 18h6.5L13.5 29 24 14h-6.5z" fill="currentColor" />
@@ -75,7 +95,7 @@ export default function Sidebar() {
           </span>
         </div>
 
-        <nav className="space-y-1.5">
+        <nav className="flex-1 space-y-1.5">
           {NAV.map((item) => {
             const active =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -123,6 +143,23 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <div className="flex items-center gap-3 px-1">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-500/20 text-sm font-semibold text-gold-300">
+              {user.name.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm text-zinc-200">{user.name}</span>
+              <span className="block truncate text-[11px] text-zinc-500">{user.email}</span>
+            </span>
+          </div>
+          <form action="/api/logout" method="post" className="mt-2">
+            <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200">
+              Sair
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
   );

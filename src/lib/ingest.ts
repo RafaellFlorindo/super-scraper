@@ -62,8 +62,18 @@ export async function ingestAd(raw: RawAd) {
     update: common,
   });
 
+  // O preço vem do funil, que é analisado depois da primeira coleta. Guardar
+  // junto no snapshot é o que permite ver "subiu de R$97 para R$127" no
+  // histórico sem ter que remontar nada.
+  const funil = await db.funnel.findUnique({ where: { adId: ad.id } });
   await db.adSnapshot.create({
-    data: { adId: ad.id, variantCount: raw.variantCount, isActive: raw.isActive },
+    data: {
+      adId: ad.id,
+      variantCount: raw.variantCount,
+      isActive: raw.isActive,
+      scaleScore,
+      price: funil?.detectedPrice ?? null,
+    },
   });
 
   for (const c of raw.creatives) {
@@ -95,8 +105,9 @@ export async function ingestAd(raw: RawAd) {
  */
 const PRIORITY: Record<string, number> = {
   mine: 10,
-  // vídeo é ação direta do usuário, que fica olhando a tela esperando
+  // vídeo e clone são ação direta do usuário, que fica olhando a tela esperando
   video: 9,
+  clone: 9,
   media: 8,
   // Empatado com media de propósito: no empate a ordem vira createdAt, então
   // cada vídeo é transcrito logo depois de baixar, em vez de esperar os ~500

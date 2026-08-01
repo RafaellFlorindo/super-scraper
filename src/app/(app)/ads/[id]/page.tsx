@@ -5,6 +5,8 @@ import { scaleLabel } from "@/lib/scale-score";
 import { classifyInfoproduct } from "@/lib/infoproduct";
 import SaveToProject from "@/components/SaveToProject";
 import ModelButton from "@/components/ModelButton";
+import ScaleSparkline from "@/components/ScaleSparkline";
+import CloneButton from "@/components/CloneButton";
 
 export const dynamic = "force-dynamic";
 
@@ -114,8 +116,20 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
               <Row k="No ar há" v={days !== null ? `${days} dias` : ""} />
               <Row k="Plataformas" v={platforms.length ? platforms.join(", ").toLowerCase() : ""} />
               <Row k="Status" v={ad.isActive ? "ativo" : "inativo"} />
-              <Row k="Coletas" v={String(ad.snapshots.length)} />
             </dl>
+
+            <div className="mt-4 border-t border-white/5 pt-4">
+              <div className="mb-2 text-[11px] uppercase tracking-wide text-zinc-500">
+                Evolução das variações
+              </div>
+              <ScaleSparkline
+                pontos={ad.snapshots.map((s) => ({
+                  seenAt: s.seenAt,
+                  variantCount: s.variantCount,
+                  isActive: s.isActive,
+                }))}
+              />
+            </div>
           </div>
 
           <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
@@ -171,6 +185,12 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
               </dl>
             ) : (
               <p className="text-sm text-zinc-600">funil ainda não analisado</p>
+            )}
+
+            {(ad.funnel?.finalUrl ?? ad.ctaUrl) && (
+              <div className="mt-3 border-t border-white/5 pt-3">
+                <CloneButton url={(ad.funnel?.finalUrl ?? ad.ctaUrl)!} adId={ad.id} />
+              </div>
             )}
           </div>
         </aside>

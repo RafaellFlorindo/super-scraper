@@ -275,9 +275,29 @@ export async function handleVideo(payload: { renderId: string }) {
   }
 }
 
+// -------------------------------------------------------------- clone
+/** Clona a página de vendas do concorrente. Fila porque abre browser. */
+export async function handleClone(payload: { cloneId: string }) {
+  const { clonePage } = await import("../lib/clone.js");
+  await db.clonedPage.update({
+    where: { id: payload.cloneId },
+    data: { status: "running", error: null },
+  });
+  try {
+    await clonePage(payload.cloneId);
+  } catch (e) {
+    await db.clonedPage.update({
+      where: { id: payload.cloneId },
+      data: { status: "failed", error: (e as Error).message.slice(0, 500) },
+    });
+    throw e;
+  }
+}
+
 export const HANDLERS: Record<string, (p: any) => Promise<void>> = {
   mine: handleMine,
   video: handleVideo,
+  clone: handleClone,
   media: handleMedia,
   transcribe: handleTranscribe,
   enrich: handleEnrich,
