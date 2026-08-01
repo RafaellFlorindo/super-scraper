@@ -433,12 +433,33 @@ interessa:
 | Job | Prioridade | Por quê |
 |---|---|---|
 | `mine` | 10 | ação sua; não pode esperar trabalho de fundo |
+| `video`, `clone` | 9 | ação sua, com você olhando a tela |
 | `media` | 8 | sem ela não há miniatura nem download; rápida e sem API |
 | `transcribe` | 8 | empatada com media: cada vídeo é transcrito logo após baixar |
-| `enrich` | 2 | classificação pode chegar depois |
-| `funnel` | 1 | abre um browser, ~15s por anúncio — o mais caro de todos |
+| `funnel` | 5 | descobre o destino, o preço e se é infoproduto; **não usa API** |
+| `enrich` | 2 | é o único que trava quando a cota de IA acaba |
 
-Depois de mexer nessa tabela, rode `npm run bump` para reaplicar na fila existente.
+O `funnel` já esteve em último por ser o job mais caro (abre um browser, ~15s por
+anúncio). Foi um erro de julgamento: ele é o que descobre **para onde o anúncio
+manda**, e é o único job pesado que não depende de cota de IA. Atrás do `enrich`,
+o dado mais importante ficava refém de um serviço externo que pode estar
+esgotado, e na prática nunca rodava.
+
+Depois de mexer nessa tabela, rode `npm run repair` para reaplicar na fila
+existente.
+
+## Manutenção
+
+```bash
+npm run diag      # o que está faltando: sem criativo, sem funil, jobs presos
+npm run repair    # conserta tudo que o diag apontar
+```
+
+O `repair` resolve quatro coisas: recria criativos perdidos, reaplica
+prioridades, devolve à fila os jobs presos em `running` de um worker que morreu,
+e encerra as transcrições de vídeo sem áudio (que só falhariam de novo).
+
+O worker também devolve os órfãos à fila sozinho, toda vez que sobe.
 
 ## Criativos duplicados
 

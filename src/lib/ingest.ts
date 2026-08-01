@@ -78,7 +78,7 @@ export async function ingestAd(raw: RawAd) {
 
   for (const c of raw.creatives) {
     await db.creative.upsert({
-      where: { sourceUrl: c.sourceUrl },
+      where: { adId_sourceUrl: { adId: ad.id, sourceUrl: c.sourceUrl } },
       create: { adId: ad.id, kind: c.kind, sourceUrl: c.sourceUrl },
       update: {},
     });
@@ -98,10 +98,15 @@ export async function ingestAd(raw: RawAd) {
 /**
  * Prioridade por tipo de job. Maior roda primeiro.
  *
- * A ordem segue o que o usuário vê: sem `media` não há miniatura nem download,
- * e ela é rápida e não gasta API. `funnel` fica por último porque abre um
- * browser e leva ~15s por anúncio — em FIFO ela sozinha empurra o download de
- * criativos para horas depois.
+ * A ordem segue duas perguntas: o que o usuário vê primeiro, e o que depende de
+ * cota de API.
+ *
+ * `funnel` já esteve por último, por ser o job mais caro (abre um browser, ~15s
+ * por anúncio). Foi um erro: ele é o que descobre PARA ONDE o anúncio manda, o
+ * que define se é infoproduto, qual o preço e se dá para clonar a página. E é o
+ * único job pesado que **não usa API nenhuma**, então funciona mesmo com a cota
+ * de IA zerada. Deixá-lo atrás de `enrich` fazia o dado mais importante ficar
+ * refém de um serviço externo que pode estar indisponível.
  */
 const PRIORITY: Record<string, number> = {
   mine: 10,
@@ -113,8 +118,9 @@ const PRIORITY: Record<string, number> = {
   // cada vídeo é transcrito logo depois de baixar, em vez de esperar os ~500
   // downloads terminarem. É a VSL que dá material aos agentes.
   transcribe: 8,
+  funnel: 5,
+  // por último: é o único que fica parado quando a cota de IA acaba
   enrich: 2,
-  funnel: 1,
 };
 
 export async function enqueue(kind: string, payload: unknown, delayMs = 0) {

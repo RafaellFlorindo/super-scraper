@@ -60,18 +60,44 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
             <ModelButton adId={ad.id} />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* uma peça só não vira grade: ficaria espremida em meia coluna */}
+          <div
+            className={`grid gap-4 ${
+              ad.creatives.length > 1 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+            }`}
+          >
             {ad.creatives.map((c) => (
               <div key={c.id} className="overflow-hidden rounded-xl border border-white/5 bg-ink-800">
                 {c.localPath ? (
-                  c.kind === "video" ? (
-                    <video src={media(c.localPath)} controls className="w-full" />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={media(c.localPath)} alt="" className="w-full" />
-                  )
+                  // Altura fixa com object-contain: criativo de anúncio é quase
+                  // sempre vertical 9:16, e sem limite de altura um único vídeo
+                  // ocupa a tela inteira e empurra o resto da página para baixo.
+                  // O fundo preto preenche as laterais sem cortar a imagem.
+                  <div
+                    className={`flex items-center justify-center bg-black ${
+                      ad.creatives.length > 1 ? "h-[420px]" : "h-[520px]"
+                    }`}
+                  >
+                    {c.kind === "video" ? (
+                      <video
+                        src={media(c.localPath)}
+                        controls
+                        preload="metadata"
+                        className="max-h-full max-w-full"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={media(c.localPath)}
+                        alt=""
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    )}
+                  </div>
                 ) : (
-                  <div className="p-8 text-center text-xs text-zinc-600">não baixado ainda</div>
+                  <div className="flex h-[420px] items-center justify-center text-xs text-zinc-600">
+                    não baixado ainda
+                  </div>
                 )}
                 {c.localPath && (
                   <a

@@ -40,6 +40,10 @@
     "test-clone": "tsx scripts/test-clone.ts",
     "test-auth": "tsx scripts/test-auth.ts",
     "usuarios": "tsx scripts/usuarios.ts",
+    "diag": "tsx scripts/diag.ts",
+    "repair": "tsx scripts/repair.ts",
+    "ad-url": "tsx scripts/ad-url.ts",
+    "sem-midia": "tsx scripts/sem-midia.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

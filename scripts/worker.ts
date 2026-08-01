@@ -17,6 +17,18 @@ process.on("SIGINT", () => {
   running = false;
 });
 
+/**
+ * Job que ficou em "running" é órfão de um worker que morreu no meio: ninguém
+ * mais vai terminá-lo, e ele nunca sai desse estado sozinho. Como só existe um
+ * worker por vez, tudo que estiver "running" na largada é lixo de execução
+ * anterior e pode voltar para a fila com segurança.
+ */
+const { count: recuperados } = await db.job.updateMany({
+  where: { status: "running" },
+  data: { status: "pending", runAfter: new Date() },
+});
+if (recuperados) console.log(`  ${recuperados} job(s) órfãos devolvidos à fila.`);
+
 console.log("  Worker ativo. Ctrl+C para parar.\n");
 
 while (running) {

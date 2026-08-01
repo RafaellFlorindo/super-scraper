@@ -120,7 +120,23 @@ export async function handleTranscribe(payload: { creativeId: string }) {
     headers: { authorization: `Bearer ${groqKey}` },
     body: form,
   });
-  if (!res.ok) throw new Error(`groq whisper ${res.status}: ${await res.text()}`);
+
+  if (!res.ok) {
+    const detalhe = await res.text();
+
+    // Vídeo mudo não é falha temporária: tentar de novo dá o mesmo erro para
+    // sempre. Marca como transcrito com conteúdo vazio e encerra o assunto.
+    if (detalhe.includes("no audio track")) {
+      await db.creative.update({
+        where: { id: c.id },
+        data: { transcript: "", transcribedAt: new Date() },
+      });
+      console.log(`  transcribe: ${c.id} não tem áudio, marcado como sem narração`);
+      return;
+    }
+
+    throw new Error(`groq whisper ${res.status}: ${detalhe}`);
+  }
 
   await db.creative.update({
     where: { id: c.id },

@@ -254,7 +254,10 @@ model Creative {
   ad     Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
 
   kind      String // image | video
-  sourceUrl String @unique
+  /// Único POR ANÚNCIO, nunca global: o mesmo vídeo aparece em vários anúncios
+  /// do mesmo anunciante, e com unicidade global só o primeiro ficava com a
+  /// mídia; os outros apareciam sem criativo nenhum na tela.
+  sourceUrl String
   localPath String? // preenchido pelo media worker
   bytes     Int?
 
@@ -268,6 +271,7 @@ model Creative {
 
   createdAt DateTime @default(now())
 
+  @@unique([adId, sourceUrl])
   @@index([adId, contentHash])
 }
 
