@@ -1,7 +1,12 @@
-# Scrapper
+# Super Scraper
 
-Minerador da Biblioteca de Anúncios da Meta para infoprodutos + estúdio de agentes de copy.
-Roda 100% local, sem custo de infra.
+Minerador da Biblioteca de Anúncios da Meta para infoprodutos, estúdio de agentes de
+copy e traqueamento de vendas por UTM. Roda local, sem custo de infra.
+
+> **Aviso.** A coleta usa o site público da Ad Library, o que contraria os Termos de
+> Uso da Meta: a API oficial (`ads_archive`) só devolve anúncios políticos. O código
+> roda no seu próprio IP, devagar e em volume moderado. Avalie o risco antes de usar
+> em escala ou comercialmente.
 
 ## Setup
 
