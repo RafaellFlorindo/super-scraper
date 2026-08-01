@@ -60,32 +60,33 @@ const NAV = [
   { href: "/config", icon: "config", label: "Configurações", hint: "chaves e coleta" },
 ];
 
-interface UserInfo {
-  name: string;
-  email: string;
-  role: string;
-}
-
-export default function Sidebar({ user }: { user: UserInfo }) {
+export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="relative w-64 shrink-0 overflow-hidden border-r border-white/5">
-      {/* degradê azul-marinho com brilho dourado, no espírito do cartão de plano */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#16306b] via-[#0d1c42] to-[#070a18]" />
-      <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-[#2b5bd4]/25 blur-3xl" />
-      <div className="absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-gold-500/15 blur-3xl" />
-      {/* textura de pontos, como no cartão do plano */}
-      <div
-        className="absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage: "radial-gradient(circle, #93b4ff 1px, transparent 1px)",
-          backgroundSize: "18px 18px",
-        }}
-      />
-      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-gold-500/25 to-transparent" />
+    // O aside estica na altura toda da página (flex stretch), e a decoração
+    // fica num wrapper com overflow próprio. Colocar overflow-hidden direto no
+    // aside quebrava o sticky do miolo e fazia o degradê vazar por cima do
+    // conteúdo, escondendo a página inteira atrás do azul.
+    <aside className="relative w-64 shrink-0 border-r border-white/5">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* degradê azul-marinho com brilho dourado, no espírito do cartão de plano */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#16306b] via-[#0d1c42] to-[#070a18]" />
+        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-[#2b5bd4]/25 blur-3xl" />
+        <div className="absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-gold-500/15 blur-3xl" />
+        {/* textura de pontos, como no cartão do plano */}
+        <div
+          className="absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #93b4ff 1px, transparent 1px)",
+            backgroundSize: "18px 18px",
+          }}
+        />
+        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-gold-500/25 to-transparent" />
+      </div>
 
-      <div className="relative flex min-h-screen flex-col p-4">
+      {/* sticky: o menu acompanha a rolagem em vez de sumir com a página */}
+      <div className="sticky top-0 flex h-screen flex-col overflow-y-auto p-4">
         <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
           <svg viewBox="0 0 32 32" className="h-6 w-6 text-gold-400" aria-hidden>
             <path d="M18.5 3 8 18h6.5L13.5 29 24 14h-6.5z" fill="currentColor" />
@@ -143,23 +144,6 @@ export default function Sidebar({ user }: { user: UserInfo }) {
             );
           })}
         </nav>
-
-        <div className="mt-4 border-t border-white/10 pt-4">
-          <div className="flex items-center gap-3 px-1">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-500/20 text-sm font-semibold text-gold-300">
-              {user.name.slice(0, 1).toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm text-zinc-200">{user.name}</span>
-              <span className="block truncate text-[11px] text-zinc-500">{user.email}</span>
-            </span>
-          </div>
-          <form action="/api/logout" method="post" className="mt-2">
-            <button className="w-full rounded-lg px-3 py-2 text-left text-xs text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200">
-              Sair
-            </button>
-          </form>
-        </div>
       </div>
     </aside>
   );

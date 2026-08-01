@@ -43,8 +43,16 @@ export interface MineOptions {
   /** Termo de busca, ex: "curso de confeitaria". */
   query: string;
   country?: string;
-  /** Para de coletar ao atingir este número. */
+  /**
+   * Quantos anúncios INÉDITOS coletar.
+   *
+   * Conta só o que o `onAd` reportar como novo. Se contasse tudo que aparece,
+   * repetir uma busca já feita pararia nos primeiros resultados, que são sempre
+   * os mesmos, e nunca traria nada novo.
+   */
   limit?: number;
+  /** Só anúncios que começaram a rodar depois desta data. */
+  startedAfter?: Date;
   /**
    * Padrão: headless (nada aparece na tela). Passe false, ou defina
    * SCRAPER_HEADFUL=1 no .env, para ver a janela — útil se a Meta pedir captcha
@@ -52,7 +60,13 @@ export interface MineOptions {
    * é persistente, resolver uma vez vale para as próximas coletas.
    */
   headless?: boolean;
-  onAd?: (ad: RawAd) => Promise<void> | void;
+  /**
+   * Devolva `true` quando o anúncio for inédito. É o que faz o `limit` contar
+   * novidade em vez de repetição.
+   */
+  onAd?: (ad: RawAd) => Promise<boolean | void> | boolean | void;
+  /** Chamado a cada rolagem, para a interface mostrar o progresso real. */
+  onProgress?: (p: { vistos: number; novos: number }) => void;
 }
 
 function buildSearchUrl(o: MineOptions) {
@@ -64,6 +78,14 @@ function buildSearchUrl(o: MineOptions) {
     search_type: "keyword_unordered",
     media_type: "all",
   });
+
+  // A Ad Library aceita recorte por data de início. É a forma mais direta de
+  // achar anúncio que ainda não está no banco quando o termo já foi minerado.
+  if (o.startedAfter) {
+    p.set("start_date[min]", o.startedAfter.toISOString().slice(0, 10));
+    p.set("start_date[max]", "");
+  }
+
   return `https://www.facebook.com/ads/library/?${p}`;
 }
 
@@ -183,6 +205,8 @@ export async function mineAdLibrary(opts: MineOptions): Promise<RawAd[]> {
   });
 
   const found = new Map<string, RawAd>();
+  /** Só o que o chamador confirmou como inédito conta para o limite. */
+  let novos = 0;
   const page: Page = ctx.pages()[0] ?? (await ctx.newPage());
 
   page.on("response", async (res) => {
@@ -206,7 +230,7 @@ export async function mineAdLibrary(opts: MineOptions): Promise<RawAd[]> {
         const ad = normalize(node);
         if (ad && !found.has(ad.libraryId)) {
           found.set(ad.libraryId, ad);
-          await opts.onAd?.(ad);
+          if ((await opts.onAd?.(ad)) === true) novos++;
         }
       }
     }
@@ -215,15 +239,32 @@ export async function mineAdLibrary(opts: MineOptions): Promise<RawAd[]> {
   await page.goto(buildSearchUrl(opts), { waitUntil: "domcontentloaded", timeout: 60_000 });
   await humanPause();
 
-  // scroll infinito: rola até parar de aparecer anúncio novo
-  let stagnant = 0;
-  while (found.size < limit && stagnant < 4) {
-    const before = found.size;
+  /**
+   * Rolagem infinita até juntar `limit` anúncios INÉDITOS.
+   *
+   * O corte por novidade, e não por total visto, é o que permite aprofundar num
+   * termo já minerado: os primeiros resultados da Ad Library são sempre os
+   * mesmos, então parar no total faria toda re-busca voltar de mãos vazias.
+   *
+   * Dois freios evitam rolar para sempre: `PACIENCIA` quando a página para de
+   * carregar mais nada, e `MAX_VISTOS` para não varrer o catálogo inteiro atrás
+   * de um punhado de novidades.
+   */
+  const PACIENCIA = 6;
+  const MAX_VISTOS = Math.max(400, limit * 25);
+
+  let semNovidade = 0;
+  while (novos < limit && semNovidade < PACIENCIA && found.size < MAX_VISTOS) {
+    const antesVistos = found.size;
     await page.mouse.wheel(0, 900 + Math.random() * 700);
     await humanPause();
-    stagnant = found.size === before ? stagnant + 1 : 0;
+
+    // conta como estagnação quando a página não trouxe MAIS NADA, nem repetido:
+    // aí é fim da lista, não apenas uma faixa de anúncios já conhecidos
+    semNovidade = found.size === antesVistos ? semNovidade + 1 : 0;
+    opts.onProgress?.({ vistos: found.size, novos });
   }
 
   await ctx.close();
-  return [...found.values()].slice(0, limit);
+  return [...found.values()];
 }

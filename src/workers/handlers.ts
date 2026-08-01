@@ -21,6 +21,7 @@ export async function handleMine(payload: { runId: string }) {
   const { ingestAd } = await import("../lib/ingest.js");
 
   let found = 0;
+  let novos = 0;
   try {
     await mineAdLibrary({
       query: run.query,
@@ -28,20 +29,29 @@ export async function handleMine(payload: { runId: string }) {
       limit: run.limit,
       headless: (await getSetting("SCRAPER_HEADFUL")) !== "1",
       onAd: async (ad) => {
-        await ingestAd(ad);
+        const { isNew } = await ingestAd(ad);
         found++;
-        await db.miningRun.update({ where: { id: run.id }, data: { found } });
+        if (isNew) novos++;
+        await db.miningRun.update({ where: { id: run.id }, data: { found, novos } });
+        // o retorno é o que faz o limite contar novidade, não repetição
+        return isNew;
       },
     });
     await db.miningRun.update({
       where: { id: run.id },
-      data: { status: "done", found, endedAt: new Date() },
+      data: { status: "done", found, novos, endedAt: new Date() },
     });
-    console.log(`  ✓ mine "${run.query}": ${found} anúncios`);
+    console.log(`  ✓ mine "${run.query}": ${found} vistos, ${novos} novos`);
   } catch (e) {
     await db.miningRun.update({
       where: { id: run.id },
-      data: { status: "failed", found, error: (e as Error).message.slice(0, 500), endedAt: new Date() },
+      data: {
+        status: "failed",
+        found,
+        novos,
+        error: (e as Error).message.slice(0, 500),
+        endedAt: new Date(),
+      },
     });
     throw e;
   }

@@ -8,7 +8,19 @@ import type { RawAd } from "../scraper/adlibrary.js";
  * jobs de enriquecimento. Rodar duas vezes o mesmo anúncio só adiciona um
  * snapshot novo — que é justamente o que alimenta a série temporal de escala.
  */
-export async function ingestAd(raw: RawAd) {
+export interface IngestResult {
+  ad: { id: string };
+  /** false quando o anúncio já existia e só foi revisitado. */
+  isNew: boolean;
+}
+
+export async function ingestAd(raw: RawAd): Promise<IngestResult> {
+  // consultado antes do upsert: depois dele não dá mais para saber se existia
+  const jaExistia = await db.ad.findUnique({
+    where: { libraryId: raw.libraryId },
+    select: { id: true },
+  });
+
   const advertiser = await db.advertiser.upsert({
     where: { pageId: raw.pageId },
     create: { pageId: raw.pageId, name: raw.pageName, pageUrl: raw.pageUrl },
@@ -84,15 +96,17 @@ export async function ingestAd(raw: RawAd) {
     });
   }
 
-  // enfileira enriquecimento só na primeira vez que vemos o anúncio
-  const isNew = ad.classifiedAt === null;
+  // Enfileira o enriquecimento só na primeira vez que vemos o anúncio. Antes
+  // isso era decidido por `classifiedAt === null`, o que refazia os jobs de
+  // todo anúncio ainda sem classificação a cada re-coleta.
+  const isNew = !jaExistia;
   if (isNew) {
     await enqueue("media", { adId: ad.id });
     await enqueue("enrich", { adId: ad.id });
     if (raw.ctaUrl) await enqueue("funnel", { adId: ad.id });
   }
 
-  return ad;
+  return { ad, isNew };
 }
 
 /**

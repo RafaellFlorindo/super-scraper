@@ -8,6 +8,7 @@ interface Run {
   query: string;
   status: string;
   found: number;
+  novos: number;
   error?: string | null;
 }
 
@@ -46,7 +47,7 @@ export default function MinePanel() {
     });
     const data = await res.json();
     if (!res.ok) return setError(data.error);
-    setRun({ id: data.runId, query, status: "running", found: 0 });
+    setRun({ id: data.runId, query, status: "running", found: 0, novos: 0 });
   }
 
   const busy = run?.status === "running";
@@ -67,7 +68,7 @@ export default function MinePanel() {
             A coleta roda no worker. Abra um terminal e rode <code className="text-zinc-300">npm run worker</code>.
           </>
         ) : (
-          "Roda em segundo plano, sem abrir janela. Leva alguns minutos."
+          "Roda em segundo plano, sem abrir janela. O número é de anúncios INÉDITOS: o que já está no banco é pulado e a busca continua mais fundo."
         )}
       </p>
 
@@ -96,7 +97,7 @@ export default function MinePanel() {
           className="rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm disabled:opacity-50"
         >
           {[20, 40, 80, 150].map((n) => (
-            <option key={n} value={n}>{n} anúncios</option>
+            <option key={n} value={n}>{n} novos</option>
           ))}
         </select>
         <button
@@ -110,12 +111,26 @@ export default function MinePanel() {
       {busy && (
         <div className="mt-3 flex items-center gap-2 text-xs text-gold-400">
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-gold-400" />
-          Coletando &quot;{run.query}&quot;: {run.found} anúncios até agora
+          Coletando &quot;{run.query}&quot;: {run.found} vistos, {run.novos} novos
         </div>
       )}
+
       {run?.status === "done" && (
-        <div className="mt-3 text-xs text-emerald-400">
-          Coleta concluída: {run.found} anúncios. Rode <code>npm run worker</code> para enriquecer.
+        <div className="mt-3 text-xs">
+          {run.novos > 0 ? (
+            <span className="text-emerald-400">
+              {run.novos} anúncio(s) novo(s) de {run.found} vistos.{" "}
+              <a href="/?ordem=recentes&tipo=todos" className="underline">
+                Ver os mais recentes
+              </a>
+            </span>
+          ) : (
+            // sem isto, "40 coletados" e nenhum card novo na tela parece bug
+            <span className="text-zinc-400">
+              {run.found} anúncios vistos, nenhum inédito: todos já estavam no banco desta
+              ou de outra busca. Tente outro termo ou outro país.
+            </span>
+          )}
         </div>
       )}
       {run?.status === "failed" && (

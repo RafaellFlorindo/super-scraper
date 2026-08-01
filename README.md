@@ -69,8 +69,26 @@ Processa a fila: baixa criativos, transcreve VSLs, classifica com IA, mapeia fun
 Deixe rodando enquanto usa o app.
 
 Para minerar um nicho, use o painel no topo do Banco de Anúncios. A coleta roda
-**dentro do worker, headless** — nenhuma janela aparece na tela. Se o worker
+**dentro do worker, headless**: nenhuma janela aparece na tela. Se o worker
 estiver parado, o painel avisa e bloqueia o botão.
+
+### O limite conta NOVIDADE, não repetição
+
+Pedir "40" significa 40 anúncios **inéditos**, não 40 vistos. O que já está no
+banco é pulado e a rolagem continua mais fundo.
+
+Isso existe porque a Ad Library sempre devolve os mesmos resultados no topo para
+um dado termo. Contando o total visto, repetir uma busca já feita parava nos
+primeiros cards e voltava de mãos vazias: numa medição real, pedir 10 em
+"Emagrecimento" trouxe **zero** novos. Com a contagem por novidade, a mesma busca
+passou por 150 conhecidos e trouxe 12 inéditos.
+
+Dois freios impedem rolagem infinita: 6 rolagens sem carregar mais nada (fim da
+lista) e um teto de anúncios vistos por coleta.
+
+Quando um termo esgota, as saídas são: outro termo, outro país, ou o recorte por
+data de início (`startedAfter`), que pede à Meta só o que começou a rodar depois
+de uma data.
 
 Também dá pela linha de comando:
 

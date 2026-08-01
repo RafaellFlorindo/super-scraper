@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
+import UserMenu from "@/components/UserMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar user={user} />
-      <main className="flex-1 overflow-x-hidden">{children}</main>
+      <Sidebar />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* barra fina só para o menu do usuário, fixa no topo da área de conteúdo */}
+        <header className="sticky top-0 z-40 flex justify-end border-b border-white/5 bg-ink-900/80 px-8 py-3 backdrop-blur">
+          <UserMenu user={user} />
+        </header>
+
+        <main className="flex-1 overflow-x-hidden">{children}</main>
+      </div>
     </div>
   );
 }

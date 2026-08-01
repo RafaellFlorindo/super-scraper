@@ -171,7 +171,11 @@ model MiningRun {
   country   String   @default("BR")
   limit     Int      @default(40)
   status    String   @default("running") // running | done | failed
+  /// Quantos anúncios a coleta viu, incluindo os que já estavam no banco.
   found     Int      @default(0)
+  /// Destes, quantos eram inéditos. Sem separar os dois, "40 coletados" e
+  /// nenhum card novo na tela parece bug do app.
+  novos     Int      @default(0)
   error     String?
   startedAt DateTime @default(now())
   endedAt   DateTime?

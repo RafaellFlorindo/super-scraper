@@ -23,10 +23,11 @@ const country = arg("country", "BR")!;
 /** Preenchido quando a mineração foi disparada pela interface. */
 const runId = arg("run");
 
-console.log(`\n  Minerando "${query}" (${country}), até ${limit} anúncios...`);
-console.log("  Uma janela do Chrome vai abrir. Não feche — ela é a coleta.\n");
+console.log(`\n  Minerando "${query}" (${country}), até ${limit} anúncios INÉDITOS.`);
+console.log("  Já conhecidos são pulados, e a rolagem continua atrás de novidade.\n");
 
 let n = 0;
+let novos = 0;
 try {
   await mineAdLibrary({
     query,
@@ -34,16 +35,19 @@ try {
     limit,
     onAd: async (ad) => {
       try {
-        await ingestAd(ad);
+        const { isNew } = await ingestAd(ad);
         n++;
-        if (runId) await db.miningRun.update({ where: { id: runId }, data: { found: n } });
-        const label = (ad.headline ?? ad.primaryText ?? "").slice(0, 55).replace(/\s+/g, " ");
+        if (isNew) novos++;
+        if (runId) await db.miningRun.update({ where: { id: runId }, data: { found: n, novos } });
+        const label = (ad.headline ?? ad.primaryText ?? "").slice(0, 50).replace(/\s+/g, " ");
         console.log(
-          `  [${String(n).padStart(3)}] ${ad.pageName.slice(0, 22).padEnd(22)} ` +
-            `${String(ad.variantCount).padStart(3)}x  ${label}`
+          `  ${isNew ? "NOVO" : "   ."} [${String(novos).padStart(3)}] ` +
+            `${ad.pageName.slice(0, 20).padEnd(20)} ${label}`
         );
+        return isNew;
       } catch (e) {
         console.error(`  ! falha ao gravar ${ad.libraryId}:`, (e as Error).message);
+        return false;
       }
     },
   });
@@ -51,7 +55,7 @@ try {
   if (runId) {
     await db.miningRun.update({
       where: { id: runId },
-      data: { status: "done", found: n, endedAt: new Date() },
+      data: { status: "done", found: n, novos, endedAt: new Date() },
     });
   }
 } catch (e) {
@@ -65,6 +69,9 @@ try {
 }
 
 const total = await db.ad.count();
-console.log(`\n  Pronto. ${n} anúncios nesta rodada, ${total} no banco.`);
+console.log(
+  `\n  Pronto. ${n} anúncios vistos, ${novos} novos, ${n - novos} já estavam no banco.` +
+    `\n  ${total} no total.`
+);
 console.log("  Rode `npm run worker` para baixar criativos, transcrever e classificar.\n");
 await db.$disconnect();

@@ -9,12 +9,16 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   searchParams: Promise<{
-    q?: string; niche?: string; format?: string; min?: string; tipo?: string;
+    q?: string; niche?: string; format?: string; min?: string; tipo?: string; ordem?: string;
   }>;
 }
 
+/** 24h: janela do que conta como "recém-minerado" para o selo NOVO. */
+const JANELA_NOVO = 24 * 3600 * 1000;
+
 export default async function Home({ searchParams }: Props) {
   const sp = await searchParams;
+  const ordem = sp.ordem === "recentes" ? "recentes" : "escala";
 
   // "tipo" default = só infoproduto. Sem isso o banco vira lista de escola de
   // bairro, que é o que a busca por palavra-chave traz na Ad Library.
@@ -36,7 +40,7 @@ export default async function Home({ searchParams }: Props) {
   const [ads, total, infoTotal, niches, formats] = await Promise.all([
     db.ad.findMany({
       where,
-      orderBy: { scaleScore: "desc" },
+      orderBy: ordem === "recentes" ? { createdAt: "desc" } : { scaleScore: "desc" },
       take: 60,
       include: { advertiser: true, creatives: true, funnel: true },
     }),
@@ -89,6 +93,10 @@ export default async function Home({ searchParams }: Props) {
           <option value="50">Escalando+ (50)</option>
           <option value="75">Escaladíssimo (75)</option>
         </select>
+        <select name="ordem" defaultValue={ordem} className="rounded-lg border border-white/10 bg-ink-800 px-3 py-2 text-sm">
+          <option value="escala">Maior escala</option>
+          <option value="recentes">Minerados recentemente</option>
+        </select>
         <button className="rounded-lg bg-gold-500 px-5 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400">
           Filtrar
         </button>
@@ -131,6 +139,11 @@ export default async function Home({ searchParams }: Props) {
                   {ad.variantCount > 1 && (
                     <span className="absolute right-2 top-2 rounded-md bg-ink-900/90 px-2 py-1 text-xs text-gold-400">
                       {ad.variantCount}x variações
+                    </span>
+                  )}
+                  {Date.now() - ad.createdAt.getTime() < JANELA_NOVO && (
+                    <span className="absolute bottom-2 left-2 rounded-md bg-emerald-500/90 px-2 py-1 text-xs font-medium text-ink-900">
+                      novo
                     </span>
                   )}
                 </Link>
