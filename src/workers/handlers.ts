@@ -29,7 +29,7 @@ export async function handleMine(payload: { runId: string }) {
       limit: run.limit,
       headless: (await getSetting("SCRAPER_HEADFUL")) !== "1",
       onAd: async (ad) => {
-        const { isNew } = await ingestAd(ad);
+        const { isNew } = await ingestAd(ad, run.id);
         found++;
         if (isNew) novos++;
         await db.miningRun.update({ where: { id: run.id }, data: { found, novos } });

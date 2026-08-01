@@ -57,7 +57,22 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
                 {ad.headline ?? "(sem headline)"}
               </h1>
             </div>
-            <ModelButton adId={ad.id} />
+            <div className="flex items-center gap-2">
+              {/* o anúncio vivo na Meta: mostra as variações lado a lado, o
+                  período exato e o que o app não consegue capturar */}
+              <a
+                href={`https://www.facebook.com/ads/library/?id=${ad.libraryId}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300 transition hover:border-gold-500/40 hover:text-gold-400"
+              >
+                Ver na Ad Library
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5" aria-hidden>
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" />
+                </svg>
+              </a>
+              <ModelButton adId={ad.id} />
+            </div>
           </div>
 
           {/* uma peça só não vira grade: ficaria espremida em meia coluna */}

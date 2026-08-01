@@ -120,8 +120,8 @@ export default function MinePanel() {
           {run.novos > 0 ? (
             <span className="text-emerald-400">
               {run.novos} anúncio(s) novo(s) de {run.found} vistos.{" "}
-              <a href="/?ordem=recentes&tipo=todos" className="underline">
-                Ver os mais recentes
+              <a href={`/?run=${run.id}`} className="underline">
+                Ver só esta coleta
               </a>
             </span>
           ) : (

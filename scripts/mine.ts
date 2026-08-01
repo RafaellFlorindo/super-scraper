@@ -35,7 +35,7 @@ try {
     limit,
     onAd: async (ad) => {
       try {
-        const { isNew } = await ingestAd(ad);
+        const { isNew } = await ingestAd(ad, runId);
         n++;
         if (isNew) novos++;
         if (runId) await db.miningRun.update({ where: { id: runId }, data: { found: n, novos } });

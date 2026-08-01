@@ -68,6 +68,12 @@ model Ad {
 
   createdAt DateTime @default(now())
 
+  /// A coleta que trouxe este anúncio pela primeira vez. É o que permite
+  /// perguntar "o que a busca de agora trouxe?" em vez de tentar adivinhar
+  /// pelo horário no meio de centenas de anúncios antigos.
+  firstRunId String?
+  firstRun   MiningRun? @relation(fields: [firstRunId], references: [id], onDelete: SetNull)
+
   creatives  Creative[]
   snapshots  AdSnapshot[]
   funnel     Funnel?
@@ -79,6 +85,7 @@ model Ad {
   @@index([niche])
   @@index([isActive])
   @@index([isInfoproduct])
+  @@index([firstRunId])
 }
 
 // ---------------------------------------------------------- TRAQUEAMENTO
@@ -179,6 +186,8 @@ model MiningRun {
   error     String?
   startedAt DateTime @default(now())
   endedAt   DateTime?
+
+  ads Ad[]
 }
 
 /// Foto diária do estado do anúncio. É a série temporal disso que revela escala.

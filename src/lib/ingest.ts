@@ -14,7 +14,7 @@ export interface IngestResult {
   isNew: boolean;
 }
 
-export async function ingestAd(raw: RawAd): Promise<IngestResult> {
+export async function ingestAd(raw: RawAd, runId?: string): Promise<IngestResult> {
   // consultado antes do upsert: depois dele não dá mais para saber se existia
   const jaExistia = await db.ad.findUnique({
     where: { libraryId: raw.libraryId },
@@ -70,7 +70,9 @@ export async function ingestAd(raw: RawAd): Promise<IngestResult> {
 
   const ad = await db.ad.upsert({
     where: { libraryId: raw.libraryId },
-    create: { libraryId: raw.libraryId, ...common },
+    // firstRunId só no create: é a coleta que DESCOBRIU o anúncio, e re-coletas
+    // não podem reescrever essa origem
+    create: { libraryId: raw.libraryId, firstRunId: runId ?? null, ...common },
     update: common,
   });
 

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   searchParams: Promise<{
-    q?: string; niche?: string; format?: string; min?: string; tipo?: string; ordem?: string;
+    q?: string; niche?: string; format?: string; min?: string; tipo?: string; ordem?: string; run?: string;
   }>;
 }
 
@@ -19,14 +19,21 @@ const JANELA_NOVO = 24 * 3600 * 1000;
 export default async function Home({ searchParams }: Props) {
   const sp = await searchParams;
   const ordem = sp.ordem === "recentes" ? "recentes" : "escala";
+  const runFiltro = sp.run || "";
 
   // "tipo" default = só infoproduto. Sem isso o banco vira lista de escola de
   // bairro, que é o que a busca por palavra-chave traz na Ad Library.
-  const tipo = sp.tipo ?? "info";
+  //
+  // Exceção: ao filtrar por uma coleta específica, o padrão vira "todos". Um
+  // anúncio recém-minerado nasce com isInfoproduct=false até o job de funil
+  // rodar, então manter o filtro de infoproduto ligado faria a coleta inteira
+  // sumir da tela sem nenhum aviso — foi exatamente o que pareceu bug.
+  const tipo = sp.tipo ?? (runFiltro ? "todos" : "info");
 
   const where: Prisma.AdWhereInput = {
     ...(tipo === "info" ? { isInfoproduct: true } : {}),
     ...(tipo === "local" ? { isInfoproduct: false } : {}),
+    ...(runFiltro ? { firstRunId: runFiltro } : {}),
     ...(sp.q ? { OR: [
       { primaryText: { contains: sp.q } },
       { headline: { contains: sp.q } },
@@ -37,10 +44,14 @@ export default async function Home({ searchParams }: Props) {
     ...(sp.min ? { scaleScore: { gte: Number(sp.min) } } : {}),
   };
 
-  const [ads, total, infoTotal, niches, formats] = await Promise.all([
+  const [ads, total, infoTotal, niches, formats, runs] = await Promise.all([
     db.ad.findMany({
       where,
-      orderBy: ordem === "recentes" ? { createdAt: "desc" } : { scaleScore: "desc" },
+      // dentro de uma coleta específica, "recém-chegado" já é a própria seleção:
+      // faz mais sentido ver por ordem de descoberta do que enterrar tudo
+      // atrás do score, que muitos ainda nem têm calculado direito
+      orderBy:
+        ordem === "recentes" || runFiltro ? { createdAt: "desc" } : { scaleScore: "desc" },
       take: 60,
       include: { advertiser: true, creatives: true, funnel: true },
     }),
@@ -48,7 +59,15 @@ export default async function Home({ searchParams }: Props) {
     db.ad.count({ where: { isInfoproduct: true } }),
     db.ad.groupBy({ by: ["niche"], where: { niche: { not: null } }, _count: true }),
     db.ad.groupBy({ by: ["format"], where: { format: { not: null } }, _count: true }),
+    db.miningRun.findMany({
+      where: { status: "done" },
+      orderBy: { startedAt: "desc" },
+      take: 15,
+      select: { id: true, query: true, country: true, novos: true, startedAt: true },
+    }),
   ]);
+
+  const runAtual = runFiltro ? runs.find((r) => r.id === runFiltro) : null;
 
   return (
     <div className="p-8">
@@ -56,18 +75,43 @@ export default async function Home({ searchParams }: Props) {
         <div>
           <h1 className="text-2xl font-semibold text-zinc-100">Banco de Anúncios</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            {infoTotal} infoprodutos de {total} anúncios minerados · ordenados por score de escala
+            {infoTotal} infoprodutos de {total} anúncios minerados ·{" "}
+            {runFiltro ? "ordenados por mais recente" : "ordenados por score de escala"}
           </p>
         </div>
       </header>
 
       <MinePanel />
 
+      {runAtual && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-gold-500/30 bg-gold-500/5 px-4 py-2.5 text-sm">
+          <span className="text-gold-400">
+            Mostrando a coleta &quot;{runAtual.query}&quot; ({runAtual.country}) ·{" "}
+            {runAtual.novos} anúncios novos
+          </span>
+          <Link href="/" className="ml-auto text-xs text-zinc-400 underline hover:text-zinc-200">
+            limpar filtro de coleta
+          </Link>
+        </div>
+      )}
+
       <form className="mb-6 flex flex-wrap gap-2">
         <select name="tipo" defaultValue={tipo} className="rounded-lg border border-white/10 bg-ink-800 px-3 py-2 text-sm">
           <option value="info">Só infoprodutos</option>
           <option value="local">Só negócio local</option>
           <option value="todos">Todos</option>
+        </select>
+        <select
+          name="run"
+          defaultValue={runFiltro}
+          className="rounded-lg border border-white/10 bg-ink-800 px-3 py-2 text-sm"
+        >
+          <option value="">Todas as coletas</option>
+          {runs.map((r) => (
+            <option key={r.id} value={r.id}>
+              &quot;{r.query}&quot; ({r.novos} novos)
+            </option>
+          ))}
         </select>
         <input
           name="q"
