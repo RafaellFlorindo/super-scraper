@@ -77,7 +77,7 @@ const NAV = [
   { href: "/", icon: "banco", label: "Banco de Anúncios", hint: "minerar e filtrar" },
   { href: "/historico", icon: "historico", label: "Histórico", hint: "quem está escalando" },
   { href: "/projetos", icon: "agentes", label: "Estúdio de Agentes", hint: "modelar e criar" },
-  { href: "/funis", icon: "funis", label: "Funis", hint: "destinos mapeados" },
+  { href: "/funis", icon: "funis", label: "Mapa de Funis", hint: "destinos mapeados" },
   { href: "/funil-hacking", icon: "hacking", label: "Funil Hacking", hint: "faturamento estimado" },
   { href: "/analise-ofertas", icon: "analise", label: "Análise de Ofertas", hint: "subindo ou caindo" },
   { href: "/clones", icon: "clones", label: "Páginas Clonadas", hint: "clonar e hospedar" },
@@ -96,15 +96,15 @@ export default function Sidebar() {
     // conteúdo, escondendo a página inteira atrás do azul.
     <aside className="relative w-64 shrink-0 border-r border-white/5">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* degradê azul-marinho com brilho dourado, no espírito do cartão de plano */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#16306b] via-[#0d1c42] to-[#070a18]" />
-        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-[#2b5bd4]/25 blur-3xl" />
-        <div className="absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-gold-500/15 blur-3xl" />
+        {/* degradê azul-noite com brilho violeta, no clima de dashboard de exchange */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#191645] via-[#100f2b] to-[#07070f]" />
+        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-[#4f46e5]/25 blur-3xl" />
+        <div className="absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-gold-500/20 blur-3xl" />
         {/* textura de pontos, como no cartão do plano */}
         <div
           className="absolute inset-0 opacity-[0.14]"
           style={{
-            backgroundImage: "radial-gradient(circle, #93b4ff 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle, #a5a0ff 1px, transparent 1px)",
             backgroundSize: "18px 18px",
           }}
         />
@@ -114,11 +114,28 @@ export default function Sidebar() {
       {/* sticky: o menu acompanha a rolagem em vez de sumir com a página */}
       <div className="sticky top-0 flex h-screen flex-col overflow-y-auto p-4">
         <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
-          <svg viewBox="0 0 32 32" className="h-6 w-6 text-gold-400" aria-hidden>
-            <path d="M18.5 3 8 18h6.5L13.5 29 24 14h-6.5z" fill="currentColor" />
+          {/* selo violeta com linha de pulso: a marca é "acompanhar o mercado",
+              e o gráfico subindo diz isso melhor que o raio antigo */}
+          <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
+            <defs>
+              <linearGradient id="logo-grad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#8f88ff" />
+                <stop offset="1" stopColor="#5b4fe0" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#logo-grad)" />
+            <path
+              d="M7 21l5-6 4 3.5L21.5 11l3.5 4"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="25" cy="15" r="1.6" fill="#fff" />
           </svg>
           <span className="bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-lg font-semibold text-transparent">
-            Scrapper
+            Super Scraper
           </span>
         </div>
 

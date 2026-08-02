@@ -5,8 +5,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: { 900: "#0a0a0c", 800: "#111114", 700: "#18181d", 600: "#22222a" },
-        gold: { 300: "#f5d98a", 400: "#e8c264", 500: "#d4a72c" },
+        // Tema "exchange": preto-azulado profundo com acento violeta.
+        // Os NOMES das escalas ficaram os mesmos (ink/gold) de propósito —
+        // são usados em centenas de classes; trocar só os valores aqui
+        // re-pinta o app inteiro sem tocar em componente nenhum.
+        ink: { 900: "#07090f", 800: "#0d1017", 700: "#151a24", 600: "#1d2433" },
+        gold: { 300: "#b9b5ff", 400: "#8f88ff", 500: "#6c63ff" },
       },
     },
   },

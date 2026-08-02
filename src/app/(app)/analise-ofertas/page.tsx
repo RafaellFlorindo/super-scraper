@@ -114,7 +114,7 @@ export default async function AnaliseOfertas() {
                     <div className="h-14 w-14 shrink-0 rounded-lg bg-ink-700" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <Link href={`/ads/${t.adId}`} className="block truncate text-sm font-medium text-zinc-100 hover:text-gold-300">
+                    <Link href={`/analise-ofertas/${t.id}`} className="block truncate text-sm font-medium text-zinc-100 hover:text-gold-300">
                       {t.ad.advertiser.name}
                     </Link>
                     <div className="line-clamp-1 text-xs text-zinc-500">
@@ -133,7 +133,15 @@ export default async function AnaliseOfertas() {
                     {t.ad.funnel?.detectedPrice && ` · ${t.ad.funnel.detectedPrice}`}
                     {` · ${pontos.length} coleta(s)`}
                   </span>
-                  <TrackOfferButton adId={t.adId} trackedId={t.id} />
+                  <span className="flex items-center gap-2">
+                    <Link
+                      href={`/analise-ofertas/${t.id}`}
+                      className="rounded-lg border border-gold-500/40 px-3 py-1.5 text-xs font-medium text-gold-400 hover:bg-gold-500/10"
+                    >
+                      Ver métricas
+                    </Link>
+                    <TrackOfferButton adId={t.adId} trackedId={t.id} />
+                  </span>
                 </div>
               </div>
             );
