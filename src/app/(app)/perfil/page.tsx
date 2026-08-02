@@ -51,7 +51,9 @@ export default async function Perfil() {
           </div>
         </div>
 
-        <div className="space-y-6">
+        {/* flex-col + flex-1 no card: a coluna estica até a altura da esquerda,
+            sem sobrar aquele vão morto embaixo do caminho de vitórias */}
+        <div className="flex flex-col gap-6">
           {/* resumo rápido no topo, estilo Kiwify */}
           <div className="grid grid-cols-3 gap-3">
             <Resumo label="Faturamento vitalício" valor={brl(achievements.totalCents)} destaque />
@@ -59,7 +61,7 @@ export default async function Perfil() {
             <Resumo label="Membro desde" valor={membro} />
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div className="flex flex-1 flex-col rounded-xl border border-white/5 bg-ink-800 p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🏆</span>
@@ -124,7 +126,7 @@ export default async function Perfil() {
               })}
             </div>
 
-            <p className="mt-4 text-[11px] text-zinc-600">
+            <p className="mt-auto pt-4 text-[11px] text-zinc-600">
               Calculado a partir das vendas pagas no Traqueamento, menos reembolso e chargeback.
             </p>
           </div>

@@ -383,6 +383,39 @@ export async function handleVideo(payload: { renderId: string }) {
   }
 }
 
+// ---------------------------------------------------------- refreshad
+/**
+ * Re-coleta UM anúncio agora na Ad Library e grava um snapshot novo.
+ * É o que dá o "está escalando neste exato momento": sem um ponto fresco,
+ * a tendência só enxerga até a última mineração.
+ */
+export async function handleRefreshAd(payload: { adId: string }) {
+  const ad = await db.ad.findUnique({ where: { id: payload.adId } });
+  if (!ad) return;
+
+  const { refreshAdMedia } = await import("../scraper/adlibrary.js");
+  const fresh = await refreshAdMedia(ad.libraryId, {
+    headless: (await getSetting("SCRAPER_HEADFUL")) !== "1",
+  });
+
+  if (!fresh) {
+    // não achou = saiu do ar; isso TAMBÉM é um dado, e dos importantes
+    await db.ad.update({ where: { id: ad.id }, data: { isActive: false } });
+    await db.adSnapshot.create({
+      data: {
+        adId: ad.id,
+        variantCount: ad.variantCount,
+        isActive: false,
+        scaleScore: ad.scaleScore,
+      },
+    });
+    return;
+  }
+
+  const { ingestAd } = await import("../lib/ingest.js");
+  await ingestAd(fresh); // idempotente: atualiza o anúncio e cria o snapshot
+}
+
 // ---------------------------------------------------------- hfvideo
 /**
  * Vídeo por IA (Higgsfield): anima a imagem gerada do criativo. Fila porque a
@@ -458,6 +491,7 @@ export const HANDLERS: Record<string, (p: any) => Promise<void>> = {
   clone: handleClone,
   media: handleMedia,
   redownload: handleRedownload,
+  refreshad: handleRefreshAd,
   transcribe: handleTranscribe,
   enrich: handleEnrich,
   funnel: handleFunnel,

@@ -149,14 +149,14 @@ export default function Sidebar() {
                 href={item.href}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-3 transition ${
                   active
-                    ? "bg-gradient-to-r from-gold-500/20 to-transparent ring-1 ring-gold-500/30"
+                    ? "bg-gradient-to-r from-sun-500/25 to-transparent ring-1 ring-sun-400/40"
                     : "hover:bg-white/5"
                 }`}
               >
                 <span
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
                     active
-                      ? "bg-gold-500 text-ink-900"
+                      ? "bg-sun-400 text-ink-900 shadow-[0_0_14px_rgba(232,194,100,0.35)]"
                       : "bg-white/5 text-zinc-400 group-hover:text-zinc-200"
                   }`}
                 >
@@ -176,7 +176,7 @@ export default function Sidebar() {
                 <span className="min-w-0">
                   <span
                     className={`block truncate text-sm font-medium ${
-                      active ? "text-gold-300" : "text-zinc-200"
+                      active ? "text-sun-300" : "text-zinc-200"
                     }`}
                   >
                     {item.label}

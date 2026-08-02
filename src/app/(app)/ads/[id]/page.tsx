@@ -9,6 +9,7 @@ import ScaleSparkline from "@/components/ScaleSparkline";
 import CloneButton from "@/components/CloneButton";
 import RedownloadButton from "@/components/RedownloadButton";
 import TrackOfferButton from "@/components/TrackOfferButton";
+import RefreshAdButton from "@/components/RefreshAdButton";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,40 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
 
   const { label, tone } = scaleLabel(ad.scaleScore);
   const platforms: string[] = JSON.parse(ad.platforms);
+
+  // Tendência AGORA: última coleta contra a última coleta de um dia anterior.
+  // O dado é tão fresco quanto a última coleta — o botão "Atualizar agora"
+  // ao lado re-coleta este anúncio na hora para zerar essa defasagem.
+  const porDia = new Map<string, { variantCount: number; isActive: boolean; seenAt: Date }>();
+  for (const s of ad.snapshots) {
+    porDia.set(s.seenAt.toISOString().slice(0, 10), s);
+  }
+  const serie = [...porDia.values()];
+  const atual = serie[serie.length - 1];
+  const anterior = serie[serie.length - 2];
+  const tendencia = !atual
+    ? null
+    : !atual.isActive
+    ? { texto: "saiu do ar", tone: "bg-red-500/15 text-red-400", seta: "✕" }
+    : !anterior
+    ? { texto: "1ª coleta — atualize amanhã para ver a tendência", tone: "bg-white/5 text-zinc-500", seta: "•" }
+    : atual.variantCount > anterior.variantCount
+    ? {
+        texto: `escalando agora (+${atual.variantCount - anterior.variantCount} variações desde ${anterior.seenAt.toLocaleDateString("pt-BR")})`,
+        tone: "bg-emerald-500/15 text-emerald-400",
+        seta: "▲",
+      }
+    : atual.variantCount < anterior.variantCount
+    ? {
+        texto: `reduzindo (${atual.variantCount - anterior.variantCount} variações desde ${anterior.seenAt.toLocaleDateString("pt-BR")})`,
+        tone: "bg-orange-500/15 text-orange-400",
+        seta: "▼",
+      }
+    : {
+        texto: `estável desde ${anterior.seenAt.toLocaleDateString("pt-BR")}`,
+        tone: "bg-white/5 text-zinc-400",
+        seta: "→",
+      };
   const transcripts = ad.creatives.filter((c) => c.transcript);
   const days = ad.startedAt
     ? Math.floor((Date.now() - ad.startedAt.getTime()) / 86_400_000)
@@ -161,9 +196,19 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
 
         <aside className="space-y-4">
           <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
-            <div className="mb-4 flex items-baseline gap-2">
+            <div className="mb-3 flex items-baseline gap-2">
               <span className={`text-3xl font-bold ${tone}`}>{ad.scaleScore}</span>
               <span className="text-sm text-zinc-500">{label}</span>
+            </div>
+
+            {tendencia && (
+              <div className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${tendencia.tone}`}>
+                <span>{tendencia.seta}</span>
+                <span>{tendencia.texto}</span>
+              </div>
+            )}
+            <div className="mb-4">
+              <RefreshAdButton adId={ad.id} />
             </div>
             <dl className="space-y-2 text-sm">
               <Row k="Variações" v={`${ad.variantCount}x`} />

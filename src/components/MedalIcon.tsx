@@ -16,8 +16,10 @@ const CORES: Record<Tier, { a: string; b: string; anel: string; brilho: string }
   prata: { a: "#dfe3e8", b: "#8a9096", anel: "#f2f4f6", brilho: "#ffffff" },
   ouro: { a: "#f2cf6e", b: "#a5791f", anel: "#ffe49a", brilho: "#fff3cd" },
   esmeralda: { a: "#22c98d", b: "#0f7a54", anel: "#5fe3b3", brilho: "#a9f5d8" },
-  "esmeralda-escura": { a: "#12a06e", b: "#075038", anel: "#22c98d", brilho: "#5fe3b3" },
-  onix: { a: "#4d4d55", b: "#141416", anel: "#8a8a94", brilho: "#c9c9d2" },
+  // 10M é rubi e 25M é diamante roxo, por pedido — o degrau final merece a
+  // cor mais rara, não um cinza
+  "esmeralda-escura": { a: "#ef5350", b: "#8f1d22", anel: "#ff8a8d", brilho: "#ffc2c3" },
+  onix: { a: "#b06bff", b: "#6b21a8", anel: "#cf9bff", brilho: "#ead1ff" },
 };
 
 export default function MedalIcon({

@@ -33,7 +33,7 @@ export default function ModelButton({
     <button
       onClick={modelar}
       disabled={busy}
-      className={`rounded-lg bg-gold-500 px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-50 ${className}`}
+      className={`rounded-lg bg-sun-400 px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-sun-300 disabled:opacity-50 ${className}`}
     >
       {busy ? "Abrindo estúdio..." : "Modelar esta oferta"}
     </button>
