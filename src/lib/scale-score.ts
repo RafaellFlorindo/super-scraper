@@ -2,16 +2,21 @@
  * Score 0-100 de "quão escalado está este anúncio".
  *
  * A Ad Library não expõe gasto nem resultado para anúncios comerciais. Então
- * inferimos a partir do comportamento do anunciante, que é observável:
+ * inferimos a partir do comportamento do anunciante, que é observável. Os dois
+ * sinais que definem escala de verdade — e que carregam a maior parte do peso —
+ * são exatamente os dois que qualquer media buyer olha na Ad Library:
  *
  *  1. VARIAÇÕES — ninguém produz 15 criativos do mesmo anúncio para uma oferta
- *     que não converte. É o sinal mais forte que existe. Peso 45.
- *  2. LONGEVIDADE — anúncio de infoproduto que sobrevive 30+ dias está pagando
+ *     que não converte. Peso 35.
+ *  2. ANÚNCIOS ATIVOS DO ANUNCIANTE — quantos anúncios distintos o mesmo
+ *     anunciante mantém rodando ao mesmo tempo. Oferta escalada tem dezenas de
+ *     anúncios simultâneos, não um. Peso 15.
+ *  3. LONGEVIDADE — anúncio de infoproduto que sobrevive 30+ dias está pagando
  *     o tráfego. A grande maioria morre em menos de 7 dias. Peso 30.
- *  3. AMPLITUDE — rodar em várias plataformas/países indica orçamento grande.
- *     Peso 15.
- *  4. PERSISTÊNCIA — visto ativo em vários snapshots nossos ao longo do tempo,
- *     sem sumir. Confirma que 1 e 2 não foram um pico. Peso 10.
+ *  4. AMPLITUDE — rodar em várias plataformas/países indica orçamento grande.
+ *     Peso 10.
+ *  5. PERSISTÊNCIA — visto ativo em vários snapshots nossos ao longo do tempo,
+ *     sem sumir. Confirma que os outros sinais não foram um pico. Peso 10.
  *
  * É uma estimativa, não uma medição. Serve para ordenar a lista, não para
  * afirmar faturamento.
@@ -24,6 +29,8 @@ export interface ScaleInput {
   countries: string[];
   /** Quantos snapshots nossos viram este anúncio ativo. */
   activeSnapshots?: number;
+  /** Anúncios ativos do MESMO anunciante no nosso banco (inclui este). */
+  advertiserActiveAds?: number;
 }
 
 /** Curva log: sair de 1→5 variações importa muito mais que de 30→35. */
@@ -33,7 +40,10 @@ function logScale(value: number, saturationPoint: number): number {
 }
 
 export function computeScaleScore(input: ScaleInput): number {
-  const variants = logScale(input.variantCount, 20) * 45;
+  const variants = logScale(input.variantCount, 20) * 35;
+
+  // 15 anúncios ativos simultâneos satura: é operação de escala pesada
+  const activeAds = logScale(input.advertiserActiveAds ?? 1, 15) * 15;
 
   const days = input.startedAt
     ? (Date.now() - input.startedAt.getTime()) / 86_400_000
@@ -44,11 +54,11 @@ export function computeScaleScore(input: ScaleInput): number {
   const breadth =
     (Math.min(1, input.platforms.length / 4) * 0.6 +
       Math.min(1, input.countries.length / 5) * 0.4) *
-    15;
+    10;
 
   const persistence = Math.min(1, (input.activeSnapshots ?? 0) / 14) * 10;
 
-  return Math.round(variants + longevity + breadth + persistence);
+  return Math.round(variants + activeAds + longevity + breadth + persistence);
 }
 
 /** Rótulo legível para a UI. */

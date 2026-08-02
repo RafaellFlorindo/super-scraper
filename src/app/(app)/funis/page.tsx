@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import RefreshFunnelsButton from "@/components/RefreshFunnelsButton";
 
 export const dynamic = "force-dynamic";
 
 const ORDENS = [
   { id: "recentes", label: "Analisados agora" },
   { id: "escala", label: "Maior escala" },
+];
+
+const QUENTES = [
+  { id: "", label: "Todos os scores" },
+  { id: "40", label: "Morno (40+)" },
+  { id: "70", label: "🔥 Quente (70+)" },
 ];
 
 /** "agora", "há 3 min", "há 2 h", "há 4 d" */
@@ -21,12 +28,14 @@ function desde(data: Date): string {
 export default async function Funis({
   searchParams,
 }: {
-  searchParams: Promise<{ ordem?: string }>;
+  searchParams: Promise<{ ordem?: string; quente?: string }>;
 }) {
-  const { ordem = "recentes" } = await searchParams;
+  const { ordem = "recentes", quente = "" } = await searchParams;
+  const minScore = Number(quente) || 0;
 
   const [funnels, totalAds, semCta, pendentes, ultimo, totalFunis] = await Promise.all([
     db.funnel.findMany({
+      where: minScore ? { ad: { scaleScore: { gte: minScore } } } : {},
       orderBy: ordem === "escala" ? { ad: { scaleScore: "desc" } } : { analyzedAt: "desc" },
       take: 200,
       include: { ad: { include: { advertiser: true } } },
@@ -53,21 +62,7 @@ export default async function Funis({
           <h1 className="text-2xl font-semibold text-zinc-100">Funis</h1>
           <p className="mt-1 text-sm text-zinc-500">Para onde cada anúncio manda o clique</p>
         </div>
-        <div className="flex gap-1">
-          {ORDENS.map((o) => (
-            <Link
-              key={o.id}
-              href={`/funis?ordem=${o.id}`}
-              className={`rounded-lg px-3 py-1.5 text-sm transition ${
-                ordem === o.id
-                  ? "bg-white/10 text-zinc-100"
-                  : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
-              }`}
-            >
-              {o.label}
-            </Link>
-          ))}
-        </div>
+        <RefreshFunnelsButton minScore={minScore} />
       </div>
 
       {/* Estado da análise. Sem isto não dá para saber se a lista está completa
@@ -100,6 +95,36 @@ export default async function Funis({
         </p>
       </div>
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        {QUENTES.map((q) => (
+          <Link
+            key={q.id}
+            href={`/funis?ordem=${ordem}${q.id ? `&quente=${q.id}` : ""}`}
+            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+              quente === q.id
+                ? "bg-gold-500/15 text-gold-400 ring-1 ring-gold-500/30"
+                : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
+            }`}
+          >
+            {q.label}
+          </Link>
+        ))}
+        <span className="mx-1 self-center text-zinc-700">·</span>
+        {ORDENS.map((o) => (
+          <Link
+            key={o.id}
+            href={`/funis?ordem=${o.id}${quente ? `&quente=${quente}` : ""}`}
+            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+              ordem === o.id
+                ? "bg-white/10 text-zinc-100"
+                : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
+            }`}
+          >
+            {o.label}
+          </Link>
+        ))}
+      </div>
+
       <div className="overflow-x-auto rounded-xl border border-white/5">
         <table className="w-full text-sm">
           <thead className="bg-ink-800 text-left text-xs uppercase tracking-wide text-zinc-500">
@@ -116,7 +141,7 @@ export default async function Funis({
             {funnels.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center text-zinc-500">
-                  Nenhum funil analisado ainda. Deixe o worker rodando.
+                  Nenhum funil {quente ? "com esse score " : ""}analisado ainda.
                 </td>
               </tr>
             ) : (

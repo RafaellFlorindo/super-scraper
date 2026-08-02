@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { createRequire } from "node:module";
+import ffmpegStatic from "ffmpeg-static";
 import { db } from "./db";
 import { chat } from "./llm";
 import { pathFor, absolute } from "./storage";
@@ -31,17 +31,17 @@ const run = promisify(execFile);
  * usar o ffmpeg que vem com o Playwright: aquele é uma build reduzida para
  * gravar tela, só tem VP8 e nenhum encoder de áudio, então não consegue montar
  * um mp4 com narração.
+ *
+ * O import é estático e o pacote entra em `serverExternalPackages`
+ * (next.config.ts) de propósito: `ffmpeg-static` acha o binário usando o
+ * próprio `__dirname` em tempo de execução, e isso só é o caminho real quando
+ * o Next NÃO empacota o módulo. Empacotado, esse `__dirname` aponta para
+ * dentro de `.next/server/...`, que não existe, e a função falhava em
+ * silêncio — rodando via `tsx` funcionava, e só quebrava dentro do processo
+ * do `next dev`/`next start`.
  */
 export function ffmpegPath(): string {
-  try {
-    // createRequire porque este módulo roda como ESM, onde require não existe
-    const req = createRequire(import.meta.url);
-    const mod = req("ffmpeg-static");
-    const exe = typeof mod === "string" ? mod : mod?.default;
-    if (exe && fs.existsSync(exe)) return exe;
-  } catch {
-    /* não instalado */
-  }
+  if (ffmpegStatic && fs.existsSync(ffmpegStatic)) return ffmpegStatic;
   return "ffmpeg"; // cai no PATH
 }
 

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 const PLATFORMS = [
   { id: "kiwify", label: "Kiwify" },
   { id: "cakto", label: "Cakto" },
+  { id: "hotmart", label: "Hotmart" },
+  { id: "kirvano", label: "Kirvano" },
 ];
 
 export default function WebhookInfo({

@@ -95,6 +95,10 @@ export async function clonePage(cloneId: string): Promise<CloneResult> {
 
   let strippedTrackers = 0;
   let title: string | null = null;
+  let estrutura: Omit<Estrutura, "sourceUrl" | "title"> = {
+    headings: [], botoes: [], paragrafos: [], corDeFundo: null, corPrincipal: null,
+    fonte: null, imagens: 0, videos: 0, temForm: false, secoes: 0,
+  };
 
   try {
     await page.goto(clone.sourceUrl, { waitUntil: "networkidle", timeout: 60_000 });
@@ -147,6 +151,42 @@ export async function clonePage(cloneId: string): Promise<CloneResult> {
       { trackers: TRACKERS, checkouts: CHECKOUTS }
     );
 
+    // Nota: nada de funções nomeadas dentro do evaluate — o esbuild do tsx injeta
+    // chamadas a um helper `__name` para preservar `.name`, que não existe no
+    // contexto isolado em que o Playwright roda a string serializada da função.
+    estrutura = await page.evaluate(() => {
+      const headings = Array.from(document.querySelectorAll("h1, h2, h3"))
+        .map((h) => ({
+          tag: h.tagName.toLowerCase(),
+          texto: (h.textContent ?? "").trim().replace(/\s+/g, " "),
+        }))
+        .filter((h) => h.texto.length > 0)
+        .slice(0, 40);
+
+      const botoes = Array.from(document.querySelectorAll("button, a"))
+        .map((b) => (b.textContent ?? "").trim().replace(/\s+/g, " "))
+        .filter((t) => t.length > 0 && t.length < 60)
+        .filter((t, i, arr) => arr.indexOf(t) === i)
+        .slice(0, 20);
+
+      const paragrafos = Array.from(document.querySelectorAll("p"))
+        .map((p) => (p.textContent ?? "").trim().replace(/\s+/g, " "))
+        .filter((t) => t.length > 30)
+        .slice(0, 25);
+
+      const corDeFundo = getComputedStyle(document.body).backgroundColor;
+      const ctaEl = document.querySelector("button, [class*='btn'], [class*='cta']");
+      const corPrincipal = ctaEl ? getComputedStyle(ctaEl).backgroundColor : null;
+      const fonte = getComputedStyle(document.body).fontFamily;
+
+      const imagens = document.querySelectorAll("img").length;
+      const videos = document.querySelectorAll("video, iframe[src*='vimeo'], iframe[src*='youtube'], iframe[src*='wistia']").length;
+      const temForm = document.querySelector("form") !== null;
+      const secoes = document.querySelectorAll("section, [class*='section']").length;
+
+      return { headings, botoes, paragrafos, corDeFundo, corPrincipal, fonte, imagens, videos, temForm, secoes };
+    });
+
     let html = await page.content();
 
     // reescreve as URLs absolutas para os arquivos que baixamos
@@ -172,6 +212,12 @@ export async function clonePage(cloneId: string): Promise<CloneResult> {
     await browser.close();
   }
 
+  const rebuildPrompt = buildRebuildPrompt({
+    sourceUrl: clone.sourceUrl,
+    title,
+    ...estrutura,
+  });
+
   const rel = path.relative(pathFor(""), dir).replaceAll("\\", "/");
   await db.clonedPage.update({
     where: { id: clone.id },
@@ -182,9 +228,74 @@ export async function clonePage(cloneId: string): Promise<CloneResult> {
       bytes,
       files: assets.size + 1,
       strippedTrackers,
+      rebuildPrompt,
       error: null,
     },
   });
 
   return { files: assets.size + 1, bytes, strippedTrackers };
+}
+
+interface Estrutura {
+  sourceUrl: string;
+  title: string | null;
+  headings: { tag: string; texto: string }[];
+  botoes: string[];
+  paragrafos: string[];
+  corDeFundo: string | null;
+  corPrincipal: string | null;
+  fonte: string | null;
+  imagens: number;
+  videos: number;
+  temForm: boolean;
+  secoes: number;
+}
+
+/**
+ * Monta um prompt pronto para colar no Claude Code: a IA já fez o scraping da
+ * estrutura (headlines, copy, CTAs, cores), e o Claude Code parte direto para
+ * escrever a página nova — sem clone literal, sem risco de direito autoral.
+ */
+function buildRebuildPrompt(e: Estrutura): string {
+  const linhas: string[] = [];
+
+  linhas.push(
+    `Crie uma landing page de vendas em Next.js (App Router, Tailwind), inspirada na estrutura de "${e.title ?? e.sourceUrl}" — mas com texto, imagens e oferta 100% originais. Não copie frases nem imagens do original, use-o só como referência de estrutura e ritmo de persuasão.`
+  );
+
+  linhas.push("");
+  linhas.push("## Estrutura de títulos observada (adapte, não copie):");
+  for (const h of e.headings) linhas.push(`- [${h.tag}] ${h.texto}`);
+
+  if (e.paragrafos.length > 0) {
+    linhas.push("");
+    linhas.push("## Blocos de copy observados (use como referência de tom e tamanho):");
+    for (const p of e.paragrafos.slice(0, 12)) linhas.push(`- ${p}`);
+  }
+
+  if (e.botoes.length > 0) {
+    linhas.push("");
+    linhas.push("## Textos de botão/CTA observados:");
+    for (const b of e.botoes) linhas.push(`- "${b}"`);
+  }
+
+  linhas.push("");
+  linhas.push("## Estilo visual observado:");
+  if (e.corDeFundo) linhas.push(`- Cor de fundo: ${e.corDeFundo}`);
+  if (e.corPrincipal) linhas.push(`- Cor de destaque/CTA: ${e.corPrincipal}`);
+  if (e.fonte) linhas.push(`- Fonte: ${e.fonte}`);
+  linhas.push(`- ${e.secoes} seções, ${e.imagens} imagens, ${e.videos} vídeo(s)`);
+  if (e.temForm) linhas.push("- Tem formulário de captura (nome/e-mail/telefone)");
+
+  linhas.push("");
+  linhas.push("## Requisitos:");
+  linhas.push("- Copy 100% nova, escrita para a nossa oferta (vou colar os detalhes da oferta abaixo).");
+  linhas.push("- Sem trackers de terceiros embutidos além dos que eu configurar depois.");
+  linhas.push("- Responsivo, mobile-first.");
+  linhas.push("- CTA principal deve linkar para uma constante `CHECKOUT_URL` fácil de trocar depois.");
+  linhas.push("");
+  linhas.push("## Nossa oferta:");
+  linhas.push("<< cole aqui o resumo da oferta gerado pelo Optimus/Lapidador >>");
+
+  return linhas.join("\n");
 }

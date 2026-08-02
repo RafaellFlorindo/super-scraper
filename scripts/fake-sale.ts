@@ -84,6 +84,49 @@ const payloads: { platform: string; body: unknown }[] = [
       },
     },
   },
+  {
+    // formato v2.0.0: status vem no campo "event", preço em reais
+    platform: "hotmart",
+    body: {
+      event: "PURCHASE_APPROVED",
+      version: "2.0.0",
+      creation_date: Date.now(),
+      data: {
+        product: { name: "Fórmula do Emagrecimento" },
+        buyer: { email: "juliana@hotmail.com" },
+        purchase: {
+          transaction: "HP" + Date.now(),
+          price: { value: 297, currency_value: "BRL" },
+          payment: { type: "BILLET" },
+          approved_date: Date.now(),
+          origin: {
+            utm_source: "facebook",
+            utm_campaign: "emagrece-jejum",
+            utm_content: "vsl-hotmart-a",
+          },
+        },
+      },
+    },
+  },
+  {
+    // total_price vem formatado como string, não em centavos
+    platform: "kirvano",
+    body: {
+      event: "SALE_APPROVED",
+      sale_id: "kv_test_" + Date.now(),
+      status: "APPROVED",
+      total_price: "R$ 169,80",
+      payment_method: "PIX",
+      products: [{ name: "Mentoria Trade Iniciante" }],
+      customer: { email: "roberto@gmail.com" },
+      created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+      utm: {
+        utm_source: "facebook",
+        utm_campaign: "trade-vps",
+        utm_content: "estatico-01",
+      },
+    },
+  },
 ];
 
 console.log(`\n  Enviando ${payloads.length} webhooks para ${base}...\n`);

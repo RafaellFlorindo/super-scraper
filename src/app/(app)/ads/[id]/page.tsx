@@ -7,6 +7,8 @@ import SaveToProject from "@/components/SaveToProject";
 import ModelButton from "@/components/ModelButton";
 import ScaleSparkline from "@/components/ScaleSparkline";
 import CloneButton from "@/components/CloneButton";
+import RedownloadButton from "@/components/RedownloadButton";
+import TrackOfferButton from "@/components/TrackOfferButton";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +18,13 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const ad = await db.ad.findUnique({
     where: { id },
-    include: { advertiser: true, creatives: true, funnel: true, snapshots: { orderBy: { seenAt: "asc" } } },
+    include: {
+      advertiser: true,
+      creatives: true,
+      funnel: true,
+      tracked: true,
+      snapshots: { orderBy: { seenAt: "asc" } },
+    },
   });
   if (!ad) notFound();
 
@@ -71,6 +79,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" />
                 </svg>
               </a>
+              <TrackOfferButton adId={ad.id} trackedId={ad.tracked?.id ?? null} />
               <ModelButton adId={ad.id} />
             </div>
           </div>
@@ -110,8 +119,12 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
                     )}
                   </div>
                 ) : (
-                  <div className="flex h-[420px] items-center justify-center text-xs text-zinc-600">
-                    não baixado ainda
+                  <div className="h-[420px]">
+                    <RedownloadButton
+                      adId={ad.id}
+                      error={c.downloadError}
+                      attempts={c.downloadAttempts}
+                    />
                   </div>
                 )}
                 {c.localPath && (

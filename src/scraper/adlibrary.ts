@@ -268,3 +268,74 @@ export async function mineAdLibrary(opts: MineOptions): Promise<RawAd[]> {
   await ctx.close();
   return [...found.values()];
 }
+
+/**
+ * Rebusca UM anúncio pelo `libraryId`, para conseguir URLs de mídia frescas.
+ *
+ * As URLs de imagem/vídeo que a Meta devolve são assinadas e expiram. Se o
+ * download demorar a rodar (fila cheia) ou a URL já tiver morrido na coleta
+ * original, o criativo fica com `localPath: null` para sempre — a não ser que
+ * alguém peça de novo o anúncio à Meta, que é o que esta função faz, abrindo
+ * a página de anúncio único (`/ads/library/?id=...`, o mesmo link do botão
+ * "Ver na Ad Library") e reaproveitando o mesmo interceptador de GraphQL da
+ * mineração normal.
+ */
+export async function refreshAdMedia(
+  libraryId: string,
+  opts: { headless?: boolean } = {}
+): Promise<RawAd | null> {
+  fs.mkdirSync(USER_DATA_DIR, { recursive: true });
+
+  const ctx: BrowserContext = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: "chrome",
+    headless: opts.headless ?? process.env.SCRAPER_HEADFUL !== "1",
+    viewport: { width: 1440, height: 900 },
+    locale: "pt-BR",
+    timezoneId: "America/Sao_Paulo",
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+      "(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  await ctx.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+  });
+
+  let achado: RawAd | null = null;
+  const page: Page = ctx.pages()[0] ?? (await ctx.newPage());
+
+  page.on("response", async (res) => {
+    if (achado || !res.url().includes("/api/graphql")) return;
+    let body: string;
+    try {
+      body = await res.text();
+    } catch {
+      return;
+    }
+    for (const line of body.split("\n")) {
+      if (!line.trim().startsWith("{")) continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      for (const node of collectAdNodes(parsed)) {
+        const ad = normalize(node);
+        if (ad && ad.libraryId === libraryId) achado = ad;
+      }
+    }
+  });
+
+  try {
+    await page.goto(`https://www.facebook.com/ads/library/?id=${libraryId}`, {
+      waitUntil: "domcontentloaded",
+      timeout: 60_000,
+    });
+    await humanPause();
+  } finally {
+    await ctx.close();
+  }
+
+  return achado;
+}

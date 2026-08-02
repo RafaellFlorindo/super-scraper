@@ -27,9 +27,16 @@ export async function ingestAd(raw: RawAd, runId?: string): Promise<IngestResult
     update: { name: raw.pageName },
   });
 
-  const activeSnapshots = await db.adSnapshot.count({
-    where: { ad: { libraryId: raw.libraryId }, isActive: true },
-  });
+  const [activeSnapshots, advertiserActiveAds] = await Promise.all([
+    db.adSnapshot.count({
+      where: { ad: { libraryId: raw.libraryId }, isActive: true },
+    }),
+    // +1 porque este anúncio (que está ativo agora, senão não estaria na
+    // coleta) pode ainda não estar gravado como ativo no banco
+    db.ad.count({
+      where: { advertiser: { pageId: raw.pageId }, isActive: true, libraryId: { not: raw.libraryId } },
+    }),
+  ]);
 
   const scaleScore = computeScaleScore({
     variantCount: raw.variantCount,
@@ -37,6 +44,7 @@ export async function ingestAd(raw: RawAd, runId?: string): Promise<IngestResult
     platforms: raw.platforms,
     countries: raw.countries,
     activeSnapshots,
+    advertiserActiveAds: advertiserActiveAds + 1,
   });
 
   // Primeira estimativa, só com a ctaUrl. O job de funil recalcula depois com
@@ -90,12 +98,20 @@ export async function ingestAd(raw: RawAd, runId?: string): Promise<IngestResult
     },
   });
 
-  for (const c of raw.creatives) {
-    await db.creative.upsert({
-      where: { adId_sourceUrl: { adId: ad.id, sourceUrl: c.sourceUrl } },
-      create: { adId: ad.id, kind: c.kind, sourceUrl: c.sourceUrl },
-      update: {},
-    });
+  // Criativos só na PRIMEIRA coleta. A Meta assina as URLs de novo a cada
+  // visita, então numa re-coleta o mesmo vídeo chega com sourceUrl diferente —
+  // o upsert criava uma linha nova por re-coleta, sem job de mídia (o anúncio
+  // não é novo), e o detalhe do anúncio enchia de cards "não baixado ainda".
+  // Mídia quebrada tem caminho próprio: o job `redownload` renova a URL na
+  // linha existente.
+  if (!jaExistia) {
+    for (const c of raw.creatives) {
+      await db.creative.upsert({
+        where: { adId_sourceUrl: { adId: ad.id, sourceUrl: c.sourceUrl } },
+        create: { adId: ad.id, kind: c.kind, sourceUrl: c.sourceUrl },
+        update: {},
+      });
+    }
   }
 
   // Enfileira o enriquecimento só na primeira vez que vemos o anúncio. Antes
@@ -126,9 +142,11 @@ export async function ingestAd(raw: RawAd, runId?: string): Promise<IngestResult
  */
 const PRIORITY: Record<string, number> = {
   mine: 10,
-  // vídeo e clone são ação direta do usuário, que fica olhando a tela esperando
+  // vídeo, clone e reparo de mídia são ação direta do usuário, que fica
+  // olhando a tela esperando
   video: 9,
   clone: 9,
+  redownload: 9,
   media: 8,
   // Empatado com media de propósito: no empate a ordem vira createdAt, então
   // cada vídeo é transcrito logo depois de baixar, em vez de esperar os ~500

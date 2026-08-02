@@ -111,6 +111,55 @@ export async function resumo(f: Filtro): Promise<Resumo> {
   };
 }
 
+// -------------------------------------------------------------- série diária
+
+export interface DiaReceita {
+  date: string; // yyyy-mm-dd
+  label: string; // "dd/mm"
+  revenueCents: number;
+  spendCents: number;
+}
+
+/** Receita líquida e gasto por dia, para o gráfico de tendência do dashboard. */
+export async function dailySeries(f: Filtro): Promise<DiaReceita[]> {
+  const [sales, spends] = await Promise.all([
+    db.sale.findMany({ where: where(f) }),
+    db.adSpend.findMany({
+      where: {
+        day: { gte: new Date(Date.now() - f.days * 86_400_000) },
+        ...(f.campaign ? { utmCampaign: f.campaign } : {}),
+      },
+    }),
+  ]);
+
+  const porDia = new Map<string, { revenueCents: number; spendCents: number }>();
+  const dias = Math.min(f.days, 90);
+  for (let i = dias - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86_400_000);
+    porDia.set(d.toISOString().slice(0, 10), { revenueCents: 0, spendCents: 0 });
+  }
+
+  for (const s of sales) {
+    const key = s.occurredAt.toISOString().slice(0, 10);
+    const bucket = porDia.get(key);
+    if (!bucket) continue;
+    if (s.status === "paid") bucket.revenueCents += s.amountCents;
+    else if (s.status === "refunded" || s.status === "chargeback") bucket.revenueCents -= s.amountCents;
+  }
+
+  for (const s of spends) {
+    const key = s.day.toISOString().slice(0, 10);
+    const bucket = porDia.get(key);
+    if (bucket) bucket.spendCents += s.amountCents;
+  }
+
+  return Array.from(porDia.entries()).map(([date, v]) => ({
+    date,
+    label: date.slice(8, 10) + "/" + date.slice(5, 7),
+    ...v,
+  }));
+}
+
 // ------------------------------------------------------------- pagamentos
 
 /**

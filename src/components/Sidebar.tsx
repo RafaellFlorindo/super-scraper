@@ -48,15 +48,41 @@ const ICONS: Record<string, React.ReactNode> = {
       <path d="M15 5H5a2 2 0 0 0-2 2v10" />
     </>
   ),
+  analise: (
+    <>
+      <path d="M3 20h18" />
+      <path d="M5 17 10 11l4 3 5-7" />
+      <circle cx="19" cy="7" r="1.4" />
+    </>
+  ),
+  hacking: (
+    <>
+      <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  perfil: (
+    <>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4" />
+    </>
+  ),
 };
 
+// Ordem pensada como um funil de uso: minerar -> ver quem escala -> produzir
+// -> mapear destino -> clonar -> acompanhar o próprio resultado. Traqueamento
+// e Meu Perfil ficam perto, porque o traqueamento é sobre o SEU faturamento,
+// não o de outra pessoa. Configurações sempre por último.
 const NAV = [
   { href: "/", icon: "banco", label: "Banco de Anúncios", hint: "minerar e filtrar" },
   { href: "/historico", icon: "historico", label: "Histórico", hint: "quem está escalando" },
   { href: "/projetos", icon: "agentes", label: "Estúdio de Agentes", hint: "modelar e criar" },
-  { href: "/traqueamento", icon: "traqueamento", label: "Traqueamento", hint: "vendas e ROI" },
   { href: "/funis", icon: "funis", label: "Funis", hint: "destinos mapeados" },
+  { href: "/funil-hacking", icon: "hacking", label: "Funil Hacking", hint: "faturamento estimado" },
+  { href: "/analise-ofertas", icon: "analise", label: "Análise de Ofertas", hint: "subindo ou caindo" },
   { href: "/clones", icon: "clones", label: "Páginas Clonadas", hint: "clonar e hospedar" },
+  { href: "/traqueamento", icon: "traqueamento", label: "Traqueamento", hint: "suas vendas e ROI" },
+  { href: "/perfil", icon: "perfil", label: "Meu Perfil", hint: "conta e conquistas" },
   { href: "/config", icon: "config", label: "Configurações", hint: "chaves e coleta" },
 ];
 

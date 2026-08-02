@@ -80,6 +80,7 @@ model Ad {
   savedBy    SavedAd[]
   modeledBy  Project[]    @relation("Modelagem")
   clones     ClonedPage[]
+  tracked    TrackedOffer? @relation("Tracked")
 
   @@index([scaleScore])
   @@index([niche])
@@ -207,6 +208,17 @@ model AdSnapshot {
   @@index([seenAt])
 }
 
+/// Oferta que o usuário escolheu acompanhar de perto na Análise de Ofertas.
+/// A série temporal em si vem dos AdSnapshot — aqui é só a marcação de
+/// "quero ver a evolução desta".
+model TrackedOffer {
+  id        String   @id @default(cuid())
+  adId      String   @unique
+  ad        Ad       @relation("Tracked", fields: [adId], references: [id], onDelete: Cascade)
+  note      String?
+  createdAt DateTime @default(now())
+}
+
 /// Página de concorrente clonada e hospedada localmente.
 model ClonedPage {
   id    String  @id @default(cuid())
@@ -228,6 +240,10 @@ model ClonedPage {
   /// Quantos rastreadores do concorrente foram removidos.
   strippedTrackers Int @default(0)
 
+  /// Prompt pronto para colar no Claude Code e gerar a página do zero,
+  /// montado a partir da estrutura extraída do clone (seções, copy, cores, CTAs).
+  rebuildPrompt String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -244,6 +260,10 @@ model User {
   passwordHash String
   /// admin gerencia usuários; user usa o app
   role         String   @default("user")
+  /// Caminho relativo em storage/ da foto de perfil enviada pelo usuário.
+  avatarPath   String?
+  cnpj         String?
+  phone        String?
   createdAt    DateTime @default(now())
 
   sessions Session[]
@@ -278,6 +298,12 @@ model Creative {
   /// coleta, e o mesmo vídeo ainda aparece em versão HD e SD — só o conteúdo
   /// identifica de verdade. Duplicata no mesmo anúncio é removida por aqui.
   contentHash String?
+
+  /// Motivo do último download que falhou. As URLs da Meta são assinadas e
+  /// expiram; sem isto o criativo ficava com localPath null pra sempre, sem
+  /// nenhum rastro do porquê nem jeito de reparar pela tela.
+  downloadError    String?
+  downloadAttempts Int     @default(0)
 
   transcript     String?
   transcribedAt  DateTime?
@@ -361,6 +387,9 @@ model VideoRender {
 
   status String @default("pending") // pending | running | done | failed
   error  String?
+
+  /// montagem (ffmpeg + narração) | higgsfield (imagem em movimento via IA)
+  engine String @default("montagem")
 
   voice     String @default("pt-BR-FranciscaNeural")
   /// Cenas planejadas: [{narration, onScreenText, seconds}]

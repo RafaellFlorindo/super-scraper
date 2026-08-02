@@ -31,6 +31,7 @@ export default async function Clones() {
           bytes: c.bytes,
           files: c.files,
           strippedTrackers: c.strippedTrackers,
+          rebuildPrompt: c.rebuildPrompt,
           localDir: c.localDir,
           createdAt: c.createdAt.toISOString(),
         }))}

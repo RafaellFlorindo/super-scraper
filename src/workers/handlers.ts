@@ -64,6 +64,8 @@ export async function handleMedia(payload: { adId: string }) {
     where: { adId: payload.adId, localPath: null },
   });
 
+  const falhas: string[] = [];
+
   for (const c of creatives) {
     const ext = c.kind === "video" ? "mp4" : "jpg";
     try {
@@ -84,14 +86,79 @@ export async function handleMedia(payload: { adId: string }) {
 
       await db.creative.update({
         where: { id: c.id },
-        data: { localPath, bytes, contentHash: hash },
+        data: { localPath, bytes, contentHash: hash, downloadError: null },
       });
       if (c.kind === "video") await enqueue("transcribe", { creativeId: c.id });
     } catch (e) {
-      // URLs da Meta expiram; não vale travar o anúncio inteiro por um criativo
-      console.warn(`  media: pulando ${c.id}: ${(e as Error).message}`);
+      // As URLs da Meta são assinadas e expiram: comum quando o download
+      // demora a rodar. Antes o erro só ia pro console e o criativo ficava
+      // com localPath null pra sempre, sem rastro nem chance de reparo — agora
+      // fica registrado, e a falha ao final desta função faz o próprio job
+      // ser tentado de novo (o worker já faz retry com backoff).
+      const msg = (e as Error).message.slice(0, 300);
+      await db.creative.update({
+        where: { id: c.id },
+        data: { downloadError: msg, downloadAttempts: { increment: 1 } },
+      });
+      falhas.push(`${c.id}: ${msg}`);
+      console.warn(`  media: falhou ${c.id}: ${msg}`);
     }
   }
+
+  if (falhas.length) {
+    throw new Error(`${falhas.length} criativo(s) não baixaram: ${falhas.slice(0, 3).join(" | ")}`);
+  }
+}
+
+// -------------------------------------------------------------- redownload
+/**
+ * Reparo manual: rebusca o anúncio na Ad Library para pegar URLs de mídia
+ * frescas e tenta baixar de novo. Existe porque, depois de esgotar as
+ * tentativas automáticas do `media`, uma URL assinada expirada nunca mais vai
+ * funcionar sozinha — só pedindo de novo à Meta resolve.
+ */
+export async function handleRedownload(payload: { adId: string }) {
+  const ad = await db.ad.findUnique({
+    where: { id: payload.adId },
+    include: { creatives: true },
+  });
+  if (!ad) return;
+
+  const semMidia = ad.creatives.filter((c) => !c.localPath);
+  if (!semMidia.length) return;
+
+  const { refreshAdMedia } = await import("../scraper/adlibrary.js");
+  const fresh = await refreshAdMedia(ad.libraryId, {
+    headless: (await getSetting("SCRAPER_HEADFUL")) !== "1",
+  });
+  if (!fresh) {
+    throw new Error("Anúncio não encontrado na Ad Library agora — pode ter sido removido pelo anunciante.");
+  }
+
+  // Casa por tipo e ordem: só toca nas URLs de quem ainda está sem mídia, as
+  // que já baixaram ficam intactas.
+  const porTipo: Record<"video" | "image", typeof fresh.creatives> = {
+    video: fresh.creatives.filter((c) => c.kind === "video"),
+    image: fresh.creatives.filter((c) => c.kind === "image"),
+  };
+  const usados = { video: 0, image: 0 };
+
+  for (const c of semMidia) {
+    const kind = c.kind as "video" | "image";
+    const fresca = porTipo[kind]?.[usados[kind]];
+    if (!fresca) continue;
+    usados[kind]++;
+    await db.creative
+      .update({
+        where: { id: c.id },
+        data: { sourceUrl: fresca.sourceUrl, downloadError: null },
+      })
+      .catch(() => {
+        /* colisão rara de unicidade — tenta de novo na próxima chamada manual */
+      });
+  }
+
+  await handleMedia({ adId: payload.adId });
 }
 
 /** MD5 do arquivo, em streaming para não carregar vídeo inteiro na memória. */
@@ -229,8 +296,14 @@ export async function handleFunnel(payload: { adId: string }) {
     await page.goto(ad.ctaUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
     await page.waitForTimeout(3000);
 
-    const text = await page.evaluate(() => document.body.innerText.slice(0, 5000));
-    const price = text.match(/R\$\s?\d{1,3}(?:[.,]\d{2,3})*/)?.[0] ?? null;
+    // o preço quase sempre está abaixo da dobra, perto do botão de compra —
+    // sem rolar a página, seções com lazy load nem chegam a renderizar
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(2000);
+
+    const text = await page.evaluate(() => document.body.innerText.slice(0, 40_000));
+    const { extractPrice } = await import("../lib/price-extract.js");
+    const price = extractPrice(text);
 
     steps.push({ url: page.url(), title: await page.title(), price });
 
@@ -238,9 +311,18 @@ export async function handleFunnel(payload: { adId: string }) {
     const platform =
       /hotmart/.test(host) ? "hotmart" :
       /kiwify/.test(host) ? "kiwify" :
+      /kirvano/.test(host) ? "kirvano" :
+      /cakto/.test(host) ? "cakto" :
       /eduzz/.test(host) ? "eduzz" :
       /monetizze/.test(host) ? "monetizze" :
-      /braip/.test(host) ? "braip" : "proprio";
+      /ticto/.test(host) ? "ticto" :
+      /perfectpay/.test(host) ? "perfectpay" :
+      /greenn/.test(host) ? "greenn" :
+      /hubla/.test(host) ? "hubla" :
+      /lastlink/.test(host) ? "lastlink" :
+      /braip/.test(host) ? "braip" :
+      /wa\.me|whatsapp/.test(host) ? "whatsapp" :
+      /instagram/.test(host) ? "instagram" : "proprio";
 
     // Reavalia infoproduto com a URL final: a ctaUrl costuma ser encurtador ou
     // redirecionador, então só agora sabemos onde o clique realmente cai.
@@ -301,6 +383,55 @@ export async function handleVideo(payload: { renderId: string }) {
   }
 }
 
+// ---------------------------------------------------------- hfvideo
+/**
+ * Vídeo por IA (Higgsfield): anima a imagem gerada do criativo. Fila porque a
+ * geração leva minutos e a API é externa.
+ */
+export async function handleHfVideo(payload: { renderId: string }) {
+  const render = await db.videoRender.findUnique({
+    where: { id: payload.renderId },
+    include: { creative: true },
+  });
+  if (!render) return;
+
+  await db.videoRender.update({
+    where: { id: render.id },
+    data: { status: "running", error: null },
+  });
+
+  try {
+    if (!render.creative.imagePath) {
+      throw new Error("Este criativo ainda não tem imagem gerada — gere a imagem primeiro.");
+    }
+
+    const { generateVideo } = await import("../lib/higgsfield.js");
+    const prompt =
+      render.creative.imagePrompt ??
+      render.creative.hook ??
+      "Cinematic slow camera push-in, natural motion, high quality";
+
+    const { videoUrl } = await generateVideo({
+      imageRelPath: render.creative.imagePath,
+      prompt,
+    });
+
+    const { download } = await import("../lib/storage.js");
+    const saved = await download(videoUrl, "renders", render.id, "higgsfield.mp4");
+
+    await db.videoRender.update({
+      where: { id: render.id },
+      data: { status: "done", localPath: saved.localPath },
+    });
+  } catch (e) {
+    await db.videoRender.update({
+      where: { id: render.id },
+      data: { status: "failed", error: (e as Error).message.slice(0, 500) },
+    });
+    throw e;
+  }
+}
+
 // -------------------------------------------------------------- clone
 /** Clona a página de vendas do concorrente. Fila porque abre browser. */
 export async function handleClone(payload: { cloneId: string }) {
@@ -323,8 +454,10 @@ export async function handleClone(payload: { cloneId: string }) {
 export const HANDLERS: Record<string, (p: any) => Promise<void>> = {
   mine: handleMine,
   video: handleVideo,
+  hfvideo: handleHfVideo,
   clone: handleClone,
   media: handleMedia,
+  redownload: handleRedownload,
   transcribe: handleTranscribe,
   enrich: handleEnrich,
   funnel: handleFunnel,

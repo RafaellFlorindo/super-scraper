@@ -13,6 +13,7 @@ interface Clone {
   bytes: number;
   files: number;
   strippedTrackers: number;
+  rebuildPrompt: string | null;
   localDir: string | null;
   createdAt: string;
 }
@@ -31,6 +32,8 @@ export default function ClonePanel({
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [promptAberto, setPromptAberto] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
 
   const pendente = clones.some((c) => c.status === "pending" || c.status === "running");
 
@@ -155,7 +158,47 @@ export default function ClonePanel({
                     <code className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-400">
                       /p/{c.slug}
                     </code>
+                    <a
+                      href={`/api/clone/prompt?id=${c.id}`}
+                      download
+                      className="rounded-lg border border-gold-500/30 bg-gold-500/10 px-4 py-1.5 text-xs font-medium text-gold-300 hover:bg-gold-500/15"
+                      title="Prompt + código HTML da página, pronto para colar no Claude Code"
+                    >
+                      Prompt completo p/ Claude Code ↓
+                    </a>
+                    {c.rebuildPrompt && (
+                      <button
+                        onClick={() => {
+                          setPromptAberto(promptAberto === c.id ? null : c.id);
+                          setCopiado(false);
+                        }}
+                        className="rounded-lg border border-white/10 px-4 py-1.5 text-xs text-zinc-400 hover:border-white/25 hover:text-zinc-200"
+                      >
+                        {promptAberto === c.id ? "Fechar resumo" : "Ver resumo"}
+                      </button>
+                    )}
                   </div>
+                  {promptAberto === c.id && c.rebuildPrompt && (
+                    <div className="mt-3 rounded-lg border border-white/10 bg-ink-900 p-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[11px] uppercase tracking-wide text-zinc-500">
+                          Cole isto no Claude Code
+                        </span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(c.rebuildPrompt!);
+                            setCopiado(true);
+                          }}
+                          className="text-xs text-gold-400 hover:text-gold-300"
+                        >
+                          {copiado ? "Copiado!" : "Copiar"}
+                        </button>
+                      </div>
+                      <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap text-xs text-zinc-400">
+                        {c.rebuildPrompt}
+                      </pre>
+                    </div>
+                  )}
                 </>
               ) : c.status === "failed" ? (
                 <p className="text-xs text-red-400">{c.error}</p>

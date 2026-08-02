@@ -4,12 +4,42 @@ import { planScenes, checkDeps, VOICES } from "@/lib/video";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-/** Enfileira a montagem do vídeo de um criativo gerado. */
+/** Enfileira a geração do vídeo de um criativo gerado. */
 export async function POST(req: Request) {
-  const { generatedCreativeId, voice } = (await req.json()) as {
+  const { generatedCreativeId, voice, engine } = (await req.json()) as {
     generatedCreativeId: string;
     voice?: string;
+    engine?: "montagem" | "higgsfield";
   };
+
+  // Higgsfield: sem ffmpeg, sem narração — só a imagem gerada + a API externa
+  if (engine === "higgsfield") {
+    const creative = await db.generatedCreative.findUnique({
+      where: { id: generatedCreativeId },
+      select: { imagePath: true },
+    });
+    if (!creative?.imagePath) {
+      return Response.json(
+        { error: "Gere a imagem do criativo antes de animar com o Higgsfield." },
+        { status: 400 }
+      );
+    }
+    const { getSetting } = await import("@/lib/settings");
+    if (!(await getSetting("HIGGSFIELD_API_KEY"))) {
+      return Response.json(
+        { error: "Configure a Higgsfield API Key em Configurações." },
+        { status: 400 }
+      );
+    }
+
+    const render = await db.videoRender.create({
+      data: { generatedCreativeId, engine: "higgsfield" },
+    });
+    await db.job.create({
+      data: { kind: "hfvideo", payload: JSON.stringify({ renderId: render.id }), priority: 9 },
+    });
+    return Response.json({ renderId: render.id });
+  }
 
   const deps = await checkDeps();
   if (!deps.ok) {

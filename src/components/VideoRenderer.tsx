@@ -28,6 +28,7 @@ export default function VideoRenderer({
 }) {
   const [renders, setRenders] = useState(initial);
   const [voice, setVoice] = useState(VOICES[0].id);
+  const [engine, setEngine] = useState<"montagem" | "higgsfield">("montagem");
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -49,7 +50,7 @@ export default function VideoRenderer({
     const res = await fetch("/api/video", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ generatedCreativeId: creativeId, voice }),
+      body: JSON.stringify({ generatedCreativeId: creativeId, voice, engine }),
     });
     const data = await res.json();
     setBusy(false);
@@ -95,24 +96,35 @@ export default function VideoRenderer({
           Montando o vídeo, leva alguns minutos. Precisa do worker rodando.
         </div>
       ) : (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <select
-            value={voice}
-            onChange={(e) => setVoice(e.target.value)}
+            value={engine}
+            onChange={(e) => setEngine(e.target.value as "montagem" | "higgsfield")}
             className="rounded-lg border border-white/10 bg-ink-900 px-3 py-1.5 text-xs"
+            title="Montagem: cenas narradas com voz. Higgsfield: anima a imagem gerada com IA."
           >
-            {VOICES.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.label}
-              </option>
-            ))}
+            <option value="montagem">Montagem narrada (grátis)</option>
+            <option value="higgsfield">Higgsfield IA (anima a imagem)</option>
           </select>
+          {engine === "montagem" && (
+            <select
+              value={voice}
+              onChange={(e) => setVoice(e.target.value)}
+              className="rounded-lg border border-white/10 bg-ink-900 px-3 py-1.5 text-xs"
+            >
+              {VOICES.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             onClick={gerar}
             disabled={busy}
             className="rounded-lg border border-gold-500/40 px-3 py-1.5 text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:opacity-40"
           >
-            {busy ? "planejando cenas..." : "Gerar vídeo"}
+            {busy ? "enviando..." : "Gerar vídeo"}
           </button>
         </div>
       )}

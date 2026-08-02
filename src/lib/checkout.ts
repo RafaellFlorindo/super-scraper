@@ -38,6 +38,30 @@ const STATUS_MAP: Record<string, NormalizedSale["status"]> = {
   chargeback: "chargeback", chargedback: "chargeback",
   canceled: "canceled", cancelled: "canceled", cancelado: "canceled",
   refused: "canceled", recusado: "canceled",
+
+  // Hotmart manda o status também no campo "event", em maiúsculas com
+  // underscore ("PURCHASE_APPROVED"); normalizeStatus já baixa a caixa antes
+  // de consultar este mapa, então as chaves ficam em minúsculo aqui.
+  purchase_approved: "paid",
+  purchase_complete: "paid",
+  purchase_refunded: "refunded",
+  purchase_chargeback: "chargeback",
+  purchase_protest: "chargeback",
+  purchase_canceled: "canceled",
+  purchase_expired: "canceled",
+  purchase_billet_printed: "pending",
+  purchase_out_of_shopping_cart: "canceled",
+  purchase_delayed: "pending",
+
+  // Kirvano
+  sale_approved: "paid",
+  sale_refused: "canceled",
+  sale_chargeback: "chargeback",
+  sale_refunded: "refunded",
+  bank_slip_generated: "pending",
+  pix_generated: "pending",
+  bank_slip_expired: "canceled",
+  pix_expired: "canceled",
 };
 
 function normalizeStatus(raw?: string): NormalizedSale["status"] {
@@ -51,7 +75,8 @@ function normalizeStatus(raw?: string): NormalizedSale["status"] {
 function normalizePayment(raw?: unknown): NormalizedSale["paymentMethod"] {
   const s = String(raw ?? "").toLowerCase();
   if (s.includes("pix")) return "pix";
-  if (s.includes("boleto") || s.includes("bank_slip")) return "boleto";
+  // "billet" é como a Hotmart chama boleto nos campos em inglês
+  if (s.includes("boleto") || s.includes("bank_slip") || s.includes("billet")) return "boleto";
   if (s.includes("card") || s.includes("cartao") || s.includes("cartão") || s.includes("credit"))
     return "cartao";
   return "outros";
@@ -165,6 +190,47 @@ function fromCakto(body: any): NormalizedSale {
   };
 }
 
+// ----------------------------------------------------------------- Hotmart
+/**
+ * Formato v2.0.0. O sinal principal de status é o campo `event`
+ * ("PURCHASE_APPROVED", "PURCHASE_REFUNDED"...), não `data.purchase.status`.
+ * Preço vem em `data.purchase.price.value`, em reais.
+ */
+function fromHotmart(body: any): NormalizedSale {
+  const purchase = body.data?.purchase ?? {};
+  return {
+    platform: "hotmart",
+    externalId: String(
+      purchase.transaction ?? body.data?.purchase?.transaction ?? body.id ?? crypto.randomUUID()
+    ),
+    status: normalizeStatus(body.event ?? purchase.status),
+    amountCents: toCents(purchase.price?.value ?? purchase.full_price?.value, "reais"),
+    currency: String(purchase.price?.currency_value ?? "BRL").toUpperCase(),
+    productName: body.data?.product?.name,
+    buyerMasked: maskEmail(body.data?.buyer?.email),
+    paymentMethod: normalizePayment(purchase.payment?.type),
+    ...findUtms(body),
+    occurredAt: pickDate(purchase.approved_date, purchase.order_date, body.creation_date),
+  };
+}
+
+// ----------------------------------------------------------------- Kirvano
+/** total_price vem formatado como string "R$ 169,80", não em centavos. */
+function fromKirvano(body: any): NormalizedSale {
+  return {
+    platform: "kirvano",
+    externalId: String(body.sale_id ?? body.checkout_id ?? crypto.randomUUID()),
+    status: normalizeStatus(body.event ?? body.status),
+    amountCents: toCents(body.total_price, "reais"),
+    currency: "BRL",
+    productName: body.products?.[0]?.name,
+    buyerMasked: maskEmail(body.customer?.email),
+    paymentMethod: normalizePayment(body.payment_method),
+    ...findUtms(body),
+    occurredAt: pickDate(body.created_at, body.approved_date),
+  };
+}
+
 /** Fallback: formato desconhecido, tenta o melhor possível sem quebrar. */
 function fromGeneric(platform: string, body: any): NormalizedSale {
   return {
@@ -182,7 +248,7 @@ function fromGeneric(platform: string, body: any): NormalizedSale {
   };
 }
 
-export const PLATFORMS = ["kiwify", "cakto"] as const;
+export const PLATFORMS = ["kiwify", "cakto", "hotmart", "kirvano"] as const;
 
 export function normalize(platform: string, body: unknown): NormalizedSale {
   switch (platform) {
@@ -190,6 +256,10 @@ export function normalize(platform: string, body: unknown): NormalizedSale {
       return fromKiwify(body);
     case "cakto":
       return fromCakto(body);
+    case "hotmart":
+      return fromHotmart(body);
+    case "kirvano":
+      return fromKirvano(body);
     default:
       return fromGeneric(platform, body);
   }

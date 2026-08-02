@@ -85,6 +85,17 @@ export default async function Historico({
   );
 }
 
+const TONS: Record<
+  "up" | "down" | "dead" | "price" | "new",
+  { icone: string; chip: string; borda: string }
+> = {
+  up: { icone: "📈", chip: "bg-emerald-500/15 text-emerald-400", borda: "hover:border-emerald-500/40" },
+  down: { icone: "📉", chip: "bg-orange-500/15 text-orange-400", borda: "hover:border-orange-500/40" },
+  dead: { icone: "💀", chip: "bg-white/5 text-zinc-400", borda: "hover:border-white/20" },
+  price: { icone: "💰", chip: "bg-gold-500/15 text-gold-400", borda: "hover:border-gold-500/40" },
+  new: { icone: "✨", chip: "bg-blue-500/15 text-blue-400", borda: "hover:border-blue-500/40" },
+};
+
 function Secao({
   titulo,
   explica,
@@ -97,28 +108,37 @@ function Secao({
   tom: "up" | "down" | "dead" | "price" | "new";
 }) {
   if (!itens.length) return null;
+  const t = TONS[tom];
 
   return (
     <section>
-      <h2 className="text-sm font-medium text-zinc-300">{titulo}</h2>
-      <p className="mb-3 text-xs text-zinc-600">{explica}</p>
+      <div className="mb-1 flex items-center gap-2">
+        <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm ${t.chip}`}>
+          {t.icone}
+        </span>
+        <h2 className="text-sm font-semibold text-zinc-100">{titulo}</h2>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums ${t.chip}`}>
+          {itens.length}
+        </span>
+      </div>
+      <p className="mb-3 pl-9 text-xs text-zinc-600">{explica}</p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {itens.map((m) => (
           <Link
             key={m.adId}
             href={`/ads/${m.adId}`}
-            className="flex gap-3 rounded-xl border border-white/5 bg-ink-800 p-3 transition hover:border-gold-500/30"
+            className={`flex gap-3 rounded-xl border border-white/5 bg-gradient-to-b from-ink-700/60 to-ink-800 p-3 transition ${t.borda}`}
           >
             {m.thumb ? (
               m.thumb.endsWith(".mp4") ? (
-                <video src={media(m.thumb)} className="h-16 w-16 shrink-0 rounded-lg object-cover" muted />
+                <video src={media(m.thumb)} className="h-20 w-20 shrink-0 rounded-lg object-cover" muted />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={media(m.thumb)} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                <img src={media(m.thumb)} alt="" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
               )
             ) : (
-              <div className="h-16 w-16 shrink-0 rounded-lg bg-ink-700" />
+              <div className="h-20 w-20 shrink-0 rounded-lg bg-ink-700" />
             )}
 
             <div className="min-w-0 flex-1">

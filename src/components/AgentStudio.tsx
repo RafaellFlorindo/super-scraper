@@ -24,6 +24,12 @@ interface Props {
   /** Prompt inicial por agente, montado a partir do anúncio modelado. */
   seeds: Record<string, string>;
   modeling: boolean;
+  /**
+   * A Fábrica de Criativos, renderizada logo abaixo do chat dela. Ficava numa
+   * aba própria, separada dos outros dois agentes, o que não fazia sentido:
+   * "gerar criativos" é o que ESTE agente faz, não um destino à parte.
+   */
+  factoryPanel?: React.ReactNode;
 }
 
 export default function AgentStudio({
@@ -33,6 +39,7 @@ export default function AgentStudio({
   savedCount,
   seeds,
   modeling,
+  factoryPanel,
 }: Props) {
   const [active, setActive] = useState(agents[0].id);
   const [threads, setThreads] = useState(initial);
@@ -133,16 +140,29 @@ export default function AgentStudio({
           <button
             key={a.id}
             onClick={() => setActive(a.id)}
-            className={`w-full rounded-xl border p-3 text-left transition ${
+            className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
               a.id === active
-                ? "border-gold-500/40 bg-gold-500/10"
-                : "border-white/5 bg-ink-800 hover:border-white/10"
+                ? "border-gold-500/40 bg-gradient-to-r from-gold-500/15 to-transparent ring-1 ring-gold-500/20"
+                : "border-white/5 bg-ink-800 hover:border-white/15 hover:bg-ink-700/60"
             }`}
           >
-            <div className="flex items-center gap-2 text-sm font-medium text-zinc-100">
-              <span>{a.icon}</span> {a.name}
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg transition ${
+                a.id === active ? "bg-gold-500 text-ink-900" : "bg-white/5"
+              }`}
+            >
+              {a.icon}
+            </span>
+            <div className="min-w-0">
+              <div
+                className={`truncate text-sm font-semibold ${
+                  a.id === active ? "text-gold-300" : "text-zinc-100"
+                }`}
+              >
+                {a.name}
+              </div>
+              <div className="truncate text-xs text-zinc-500">{a.tagline}</div>
             </div>
-            <div className="mt-0.5 truncate text-xs text-zinc-500">{a.tagline}</div>
           </button>
         ))}
 
@@ -162,7 +182,12 @@ export default function AgentStudio({
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-220px)] flex-col rounded-xl border border-white/5 bg-ink-800">
+      <div className={active === "fabrica" ? "space-y-5" : "contents"}>
+      <div
+        className={`flex flex-col rounded-xl border border-white/5 bg-ink-800 ${
+          active === "fabrica" ? "h-[480px]" : "h-[calc(100vh-220px)]"
+        }`}
+      >
         <div className="border-b border-white/5 px-5 py-3">
           <div className="text-sm font-medium text-zinc-100">
             {agent.icon} {agent.name}
@@ -237,6 +262,9 @@ export default function AgentStudio({
             {streaming ? "..." : "Enviar"}
           </button>
         </form>
+      </div>
+
+      {active === "fabrica" && factoryPanel}
       </div>
     </div>
   );
