@@ -17,7 +17,7 @@ export default function AchievementsWidget({ data }: { data: Achievements }) {
   return (
     <Link
       href="/perfil"
-      className="flex items-center gap-2.5 rounded-full border border-white/10 bg-ink-800 py-1.5 pl-1.5 pr-3 transition hover:border-emerald-500/40"
+      className="flex items-center gap-2.5 rounded-full border border-white/10 bg-ink-800 py-1.5 pl-1.5 pr-3 transition duration-200 ease-spring hover:border-emerald-500/40 active:scale-[0.97]"
       title="Caminho de vitórias"
     >
       <MedalIcon tier={alvo.tier} achieved={Boolean(alvo.achievedAt)} size={22} />

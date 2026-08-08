@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { card, campoInset, btnPrimary, linkGhost } from "@/lib/ui";
 
 /**
  * Descrição da nossa oferta. Sem isso os agentes escrevem no vácuo: eles sabem
@@ -36,7 +37,7 @@ export default function OwnerOffer({
 
   if (!open) {
     return (
-      <div className="rounded-xl border border-white/5 bg-ink-800 p-4">
+      <div className={`${card} p-4`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-xs text-zinc-500">A nossa oferta</div>
@@ -44,10 +45,7 @@ export default function OwnerOffer({
               {text || "não descrita"}
             </p>
           </div>
-          <button
-            onClick={() => setOpen(true)}
-            className="shrink-0 text-xs text-zinc-500 hover:text-gold-400"
-          >
+          <button onClick={() => setOpen(true)} className={`shrink-0 ${linkGhost}`}>
             editar
           </button>
         </div>
@@ -57,7 +55,7 @@ export default function OwnerOffer({
   }
 
   return (
-    <div className="rounded-xl border border-gold-500/20 bg-ink-800 p-4">
+    <div className={`${card} border-gold-500/20 p-4`}>
       <div className="mb-1 text-sm font-medium text-zinc-300">A nossa oferta</div>
       <p className="mb-3 text-xs text-zinc-500">
         O que você vende, para quem e por quanto. Os três agentes e a fábrica de criativos
@@ -68,13 +66,9 @@ export default function OwnerOffer({
         onChange={(e) => setText(e.target.value)}
         rows={4}
         placeholder="Ex: curso online de bolos caseiros sem glúten, R$97, para mulheres de 30 a 50 anos que querem renda extra em casa. Diferencial: método de um bowl só, sem batedeira."
-        className="w-full resize-none rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50"
+        className={`w-full resize-none !h-auto py-2 ${campoInset} placeholder:text-zinc-600`}
       />
-      <button
-        onClick={save}
-        disabled={saving}
-        className="mt-2 rounded-lg bg-gold-500 px-4 py-1.5 text-sm font-medium text-ink-900 hover:bg-gold-400 disabled:opacity-40"
-      >
+      <button onClick={save} disabled={saving} className={`mt-2 ${btnPrimary} !h-auto px-4 py-1.5`}>
         {saving ? "Salvando..." : "Salvar"}
       </button>
     </div>

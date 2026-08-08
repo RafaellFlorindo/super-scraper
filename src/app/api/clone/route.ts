@@ -26,12 +26,16 @@ export async function POST(req: Request) {
     slug = `${base}-${i}`;
   }
 
-  const clone = await db.clonedPage.create({
-    data: { sourceUrl: alvo.toString(), slug, adId: adId ?? null },
-  });
-
-  await db.job.create({
-    data: { kind: "clone", payload: JSON.stringify({ cloneId: clone.id }), priority: 9 },
+  // numa transação: se a criação do job falhar, o clone não fica "pending"
+  // travado para sempre, sem job nenhum que o processe
+  const clone = await db.$transaction(async (tx) => {
+    const clone = await tx.clonedPage.create({
+      data: { sourceUrl: alvo.toString(), slug, adId: adId ?? null },
+    });
+    await tx.job.create({
+      data: { kind: "clone", payload: JSON.stringify({ cloneId: clone.id }), priority: 9 },
+    });
+    return clone;
   });
 
   return Response.json({ id: clone.id, slug });

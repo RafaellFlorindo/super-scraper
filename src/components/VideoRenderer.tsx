@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { campoInset, btnAccent, linkGhost } from "@/lib/ui";
 
 interface Render {
   id: string;
@@ -72,20 +73,20 @@ export default function VideoRenderer({
           <video
             src={media(pronto.localPath)}
             controls
-            className="max-h-96 rounded-lg border border-white/10"
+            className="max-h-96 rounded-xl border border-white/10"
           />
           <div className="flex items-center gap-3 text-xs">
             <a
               href={media(pronto.localPath)}
               download
-              className="text-gold-400 hover:underline"
+              className="text-gold-400 transition duration-200 ease-spring hover:underline"
             >
               Baixar vídeo
             </a>
             {pronto.durationSec && (
               <span className="text-zinc-600">{pronto.durationSec.toFixed(0)}s</span>
             )}
-            <button onClick={gerar} disabled={busy} className="text-zinc-500 hover:text-zinc-300">
+            <button onClick={gerar} disabled={busy} className={linkGhost}>
               gerar outra versão
             </button>
           </div>
@@ -100,7 +101,7 @@ export default function VideoRenderer({
           <select
             value={engine}
             onChange={(e) => setEngine(e.target.value as "montagem" | "higgsfield")}
-            className="rounded-lg border border-white/10 bg-ink-900 px-3 py-1.5 text-xs"
+            className={`!h-auto py-1.5 text-xs ${campoInset}`}
             title="Montagem: cenas narradas com voz. Higgsfield: anima a imagem gerada com IA."
           >
             <option value="montagem">Montagem narrada (grátis)</option>
@@ -110,7 +111,7 @@ export default function VideoRenderer({
             <select
               value={voice}
               onChange={(e) => setVoice(e.target.value)}
-              className="rounded-lg border border-white/10 bg-ink-900 px-3 py-1.5 text-xs"
+              className={`!h-auto py-1.5 text-xs ${campoInset}`}
             >
               {VOICES.map((v) => (
                 <option key={v.id} value={v.id}>
@@ -119,11 +120,7 @@ export default function VideoRenderer({
               ))}
             </select>
           )}
-          <button
-            onClick={gerar}
-            disabled={busy}
-            className="rounded-lg border border-gold-500/40 px-3 py-1.5 text-xs text-gold-400 transition hover:bg-gold-500/10 disabled:opacity-40"
-          >
+          <button onClick={gerar} disabled={busy} className={`!h-auto px-3 py-1.5 text-xs ${btnAccent}`}>
             {busy ? "enviando..." : "Gerar vídeo"}
           </button>
         </div>

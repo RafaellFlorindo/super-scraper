@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { scaleLabel } from "@/lib/scale-score";
 import TrackOfferButton from "@/components/TrackOfferButton";
+import { card } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ function tendencia(pontos: Ponto[]): { label: string; tone: string; delta: numbe
 /** Sparkline em SVG puro: variações ao longo das coletas. */
 function Sparkline({ pontos }: { pontos: Ponto[] }) {
   if (pontos.length < 2) {
-    return <div className="h-12 rounded bg-white/[0.03] text-center text-[10px] leading-[48px] text-zinc-600">precisa de 2+ coletas</div>;
+    return <div className="h-12 rounded-xl bg-white/[0.03] text-center text-[10px] leading-[48px] text-zinc-600">precisa de 2+ coletas</div>;
   }
   const W = 260;
   const H = 48;
@@ -82,14 +83,14 @@ export default async function AnaliseOfertas() {
 
   return (
     <div className="p-8">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">Análise de Ofertas</h1>
-      <p className="mb-6 text-sm text-zinc-500">
+      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Análise de Ofertas</h1>
+      <p className="mb-6 text-[13px] text-zinc-500">
         Acompanhe ofertas específicas coleta a coleta: se as variações sobem, o concorrente está
         escalando; se caem, o criativo cansou. Minere o mesmo nicho de novo para gerar pontos novos.
       </p>
 
       {tracked.length === 0 ? (
-        <div className="mb-8 rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-zinc-500">
+        <div className="mb-8 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center text-sm text-zinc-500">
           Nenhuma oferta acompanhada ainda. Adicione uma das sugestões abaixo ou use o botão
           &quot;Acompanhar oferta&quot; na página de qualquer anúncio.
         </div>
@@ -101,20 +102,23 @@ export default async function AnaliseOfertas() {
             const escala = scaleLabel(t.ad.scaleScore);
             const thumb = t.ad.creatives[0]?.localPath;
             return (
-              <div key={t.id} className="rounded-xl border border-white/5 bg-ink-800 p-4">
+              <div key={t.id} className={`${card} p-4`}>
                 <div className="mb-3 flex items-start gap-3">
                   {thumb ? (
                     thumb.endsWith(".mp4") ? (
-                      <video src={media(thumb)} className="h-14 w-14 shrink-0 rounded-lg object-cover" muted />
+                      <video src={media(thumb)} className="h-14 w-14 shrink-0 rounded-xl object-cover" muted />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={media(thumb)} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                      <img src={media(thumb)} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" />
                     )
                   ) : (
-                    <div className="h-14 w-14 shrink-0 rounded-lg bg-ink-700" />
+                    <div className="h-14 w-14 shrink-0 rounded-xl bg-ink-700" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <Link href={`/analise-ofertas/${t.id}`} className="block truncate text-sm font-medium text-zinc-100 hover:text-gold-300">
+                    <Link
+                      href={`/analise-ofertas/${t.id}`}
+                      className="block truncate text-sm font-medium text-zinc-100 transition duration-200 ease-spring hover:text-gold-300"
+                    >
                       {t.ad.advertiser.name}
                     </Link>
                     <div className="line-clamp-1 text-xs text-zinc-500">
@@ -136,7 +140,7 @@ export default async function AnaliseOfertas() {
                   <span className="flex items-center gap-2">
                     <Link
                       href={`/analise-ofertas/${t.id}`}
-                      className="rounded-lg border border-gold-500/40 px-3 py-1.5 text-xs font-medium text-gold-400 hover:bg-gold-500/10"
+                      className="rounded-xl border border-gold-500/40 px-3 py-1.5 text-xs font-medium text-gold-400 transition duration-200 ease-spring hover:bg-gold-500/10 active:scale-[0.97]"
                     >
                       Ver métricas
                     </Link>
@@ -159,16 +163,16 @@ export default async function AnaliseOfertas() {
             {sugestoes.map((ad) => {
               const thumb = ad.creatives[0]?.localPath;
               return (
-                <div key={ad.id} className="flex items-center gap-3 rounded-xl border border-white/5 bg-ink-800 p-3">
+                <div key={ad.id} className={`flex items-center gap-3 ${card} p-3`}>
                   {thumb ? (
                     thumb.endsWith(".mp4") ? (
-                      <video src={media(thumb)} className="h-12 w-12 shrink-0 rounded-lg object-cover" muted />
+                      <video src={media(thumb)} className="h-12 w-12 shrink-0 rounded-xl object-cover" muted />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={media(thumb)} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                      <img src={media(thumb)} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
                     )
                   ) : (
-                    <div className="h-12 w-12 shrink-0 rounded-lg bg-ink-700" />
+                    <div className="h-12 w-12 shrink-0 rounded-xl bg-ink-700" />
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm text-zinc-100">{ad.advertiser.name}</div>

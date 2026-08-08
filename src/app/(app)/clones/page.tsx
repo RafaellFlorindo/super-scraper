@@ -13,8 +13,8 @@ export default async function Clones() {
 
   return (
     <div className="p-8">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">Páginas Clonadas</h1>
-      <p className="mb-6 text-sm text-zinc-500">
+      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Páginas Clonadas</h1>
+      <p className="mb-6 text-[13px] text-zinc-500">
         Clone a página de vendas do concorrente para estudar a estrutura, já sem os
         rastreadores dele.
       </p>

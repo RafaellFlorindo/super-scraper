@@ -43,7 +43,7 @@ export default function SaveToProject({ adId, projects, saved }: Props) {
             key={p.id}
             onClick={() => !attached && attach(p.id)}
             disabled={busy || attached}
-            className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition ${
+            className={`w-full rounded-xl border px-3 py-2 text-left text-xs transition duration-200 ease-spring active:scale-[0.98] ${
               attached
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                 : "border-white/10 bg-ink-900 text-zinc-300 hover:border-gold-500/40 hover:text-gold-400"

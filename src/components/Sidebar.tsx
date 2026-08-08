@@ -112,7 +112,7 @@ export default function Sidebar() {
       </div>
 
       {/* sticky: o menu acompanha a rolagem em vez de sumir com a página */}
-      <div className="sticky top-0 flex h-screen flex-col overflow-y-auto p-4">
+      <div className="fade-scroll sticky top-0 flex h-screen flex-col overflow-y-auto p-4">
         <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
           {/* selo violeta com linha de pulso: a marca é "acompanhar o mercado",
               e o gráfico subindo diz isso melhor que o raio antigo */}
@@ -134,7 +134,7 @@ export default function Sidebar() {
             />
             <circle cx="25" cy="15" r="1.6" fill="#fff" />
           </svg>
-          <span className="bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-lg font-semibold text-transparent">
+          <span className="bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-lg font-semibold tracking-tight text-transparent">
             Super Scraper
           </span>
         </div>
@@ -147,14 +147,14 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-3 transition ${
+                className={`group flex items-center gap-3 rounded-xl px-3 py-3 transition duration-200 ease-spring active:scale-[0.98] ${
                   active
                     ? "bg-gradient-to-r from-sun-500/25 to-transparent ring-1 ring-sun-400/40"
                     : "hover:bg-white/5"
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 ease-spring ${
                     active
                       ? "bg-sun-400 text-ink-900 shadow-[0_0_14px_rgba(232,194,100,0.35)]"
                       : "bg-white/5 text-zinc-400 group-hover:text-zinc-200"

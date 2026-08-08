@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { card, btnSecondary } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ function AreaChart({ dias }: { dias: Dia[] }) {
 
   if (dias.length < 2) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-lg bg-white/[0.02] text-sm text-zinc-600">
+      <div className="flex h-48 items-center justify-center rounded-xl bg-white/[0.02] text-sm text-zinc-600">
         Precisa de pelo menos 2 coletas em dias diferentes para desenhar a evolução.
       </div>
     );
@@ -130,14 +131,14 @@ export default async function HistoricoMetricas({ params }: { params: Promise<{ 
   return (
     <div className="p-8">
       <div className="mb-1 text-xs text-zinc-500">
-        <Link href="/analise-ofertas" className="hover:text-gold-400">
+        <Link href="/analise-ofertas" className="transition duration-200 ease-spring hover:text-gold-400">
           Análise de Ofertas
         </Link>
         <span className="mx-1.5 text-zinc-700">/</span>
         <span className="uppercase text-gold-400">{tracked.ad.advertiser.name}</span>
       </div>
-      <h1 className="text-2xl font-semibold text-zinc-100">Histórico de Métricas</h1>
-      <p className="mb-6 text-sm uppercase tracking-wide text-zinc-500">{nome}</p>
+      <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Histórico de Métricas</h1>
+      <p className="mb-6 text-[13px] uppercase tracking-wide text-zinc-500">{nome}</p>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card label="Total Hoje" valor={String(hoje)} />
@@ -157,12 +158,12 @@ export default async function HistoricoMetricas({ params }: { params: Promise<{ 
         />
       </div>
 
-      <section className="mb-5 rounded-xl border border-white/5 bg-ink-800 p-5">
+      <section className={`mb-5 ${card} p-5`}>
         <h2 className="mb-4 text-sm font-medium text-zinc-200">Evolução dos Criativos</h2>
         <AreaChart dias={dias} />
       </section>
 
-      <section className="rounded-xl border border-white/5 bg-ink-800 p-5">
+      <section className={`${card} p-5`}>
         <h2 className="mb-4 text-sm font-medium text-zinc-200">Dados Históricos</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -192,10 +193,7 @@ export default async function HistoricoMetricas({ params }: { params: Promise<{ 
       </section>
 
       <div className="mt-5">
-        <Link
-          href={`/ads/${tracked.adId}`}
-          className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 hover:border-gold-500/40 hover:text-gold-400"
-        >
+        <Link href={`/ads/${tracked.adId}`} className={btnSecondary}>
           Ver anúncio completo →
         </Link>
       </div>
@@ -205,7 +203,7 @@ export default async function HistoricoMetricas({ params }: { params: Promise<{ 
 
 function Card({ label, valor, cor }: { label: string; valor: string; cor?: string }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-ink-800 p-5 text-center">
+    <div className={`${card} p-5 text-center`}>
       <div className="text-[11px] uppercase tracking-wide text-zinc-500">{label}</div>
       <div className={`mt-1 text-2xl font-bold tabular-nums ${cor ?? "text-zinc-100"}`}>{valor}</div>
     </div>

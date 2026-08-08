@@ -4,8 +4,25 @@
 
 body {
   @apply bg-ink-900 text-zinc-200 antialiased;
+  font-feature-settings: "tnum" 1; /* números tabulares: preço/score não "dançam" ao trocar de dígito */
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #0a0a0c; }
-::-webkit-scrollbar-thumb { background: #2a2a33; border-radius: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a33; border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #383842; background-clip: padding-box; }
+
+/* esconde a barra de rolagem mas mantém o scroll, para o degradê de borda da nav */
+.fade-scroll {
+  mask-image: linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent);
+}
+
+/* Reduce Motion: mantém o feedback (cor, foco) mas tira o movimento em si */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

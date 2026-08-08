@@ -17,6 +17,7 @@
     "errors": "tsx scripts/errors.ts",
     "probe": "tsx scripts/probe-llm.ts",
     "reclassify": "tsx scripts/reclassify.ts",
+    "reanalyze-price": "tsx scripts/reanalyze-price.ts",
     "audit": "tsx scripts/audit-info.ts",
     "runs": "tsx scripts/runs.ts",
     "bump": "tsx scripts/bump.ts",

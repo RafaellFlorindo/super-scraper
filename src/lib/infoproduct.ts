@@ -20,6 +20,26 @@ const CHECKOUT_HOSTS = [
   "pepper", "digitalmanager", "guru", "clickbank", "samcart", "thrivecart",
 ];
 
+/**
+ * Plataformas de cobrança recorrente típicas de SaaS. O app cobre infoproduto
+ * E SaaS de propósito — sem isto, checkout de SaaS (que nunca usa Hotmart/
+ * Kiwify) ficava no "score neutro" e caía fora da aba de infoprodutos.
+ */
+const SAAS_HOSTS = [
+  "stripe.com", "paddle.com", "chargebee.com", "recurly.com", "iugu.com",
+  "vindi.com.br", "asaas.com", "getcheddar.com", "chargify.com",
+];
+
+/** Vocabulário típico de página de vendas de SaaS. */
+const SAAS_TERMS = [
+  "teste grátis", "teste gratuito", "sem cartão de crédito", "sem cartao de credito",
+  "cancele quando quiser", "plano mensal", "plano anual", "por mês",
+  "assinatura mensal", "dashboard", "automatize", "automação", "automacao",
+  "sua equipe", "produtividade", "gestão de", "gestao de", "integração com",
+  "integracao com", "software", "plataforma completa", "workflow",
+  "todos os planos", "comece grátis", "comece gratis",
+];
+
 /** Caminhos típicos de funil de infoproduto. */
 const FUNNEL_PATHS = [
   "/vsl", "/oferta", "/checkout", "/inscricao", "/inscrever", "/captura",
@@ -107,6 +127,12 @@ export function classifyInfoproduct(input: InfoInput): InfoResult {
     reasons.push(`checkout em ${checkout}`);
   }
 
+  const saasHost = SAAS_HOSTS.find((h) => host.includes(h));
+  if (saasHost) {
+    score += 45;
+    reasons.push(`cobrança de SaaS em ${saasHost}`);
+  }
+
   const funnelPath = FUNNEL_PATHS.find((p) => url.includes(p));
   if (funnelPath) {
     score += 25;
@@ -141,6 +167,12 @@ export function classifyInfoproduct(input: InfoInput): InfoResult {
   if (localHits.length) {
     score -= Math.min(20, localHits.length * 7);
     reasons.push(`termos de operação local: ${localHits.slice(0, 3).join(", ")}`);
+  }
+
+  const saasHits = SAAS_TERMS.filter((t) => text.includes(t));
+  if (saasHits.length) {
+    score += Math.min(20, saasHits.length * 7);
+    reasons.push(`termos de SaaS: ${saasHits.slice(0, 3).join(", ")}`);
   }
 
   const infoHits = INFO_TERMS.filter((t) => text.includes(t));

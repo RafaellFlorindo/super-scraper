@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { btnSecondary } from "@/lib/ui";
 
 /**
  * Re-coleta o anúncio AGORA na Ad Library e recarrega a página quando o
@@ -48,7 +49,7 @@ export default function RefreshAdButton({ adId }: { adId: string }) {
         onClick={atualizar}
         disabled={Boolean(jobId)}
         title="Re-coleta este anúncio agora na Ad Library e atualiza a tendência"
-        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300 transition hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-60"
+        className={`inline-flex items-center gap-1.5 ${btnSecondary} hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-60`}
       >
         <svg
           viewBox="0 0 24 24"

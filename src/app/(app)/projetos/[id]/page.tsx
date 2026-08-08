@@ -7,6 +7,7 @@ import AgentStudio from "@/components/AgentStudio";
 import CreativeFactory from "@/components/CreativeFactory";
 import OwnerOffer from "@/components/OwnerOffer";
 import ProjectStatus from "@/components/ProjectStatus";
+import { card, btnSecondary } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -45,25 +46,28 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="p-8">
-      <Link href="/projetos" className="mb-4 inline-block text-sm text-zinc-500 hover:text-zinc-300">
+      <Link
+        href="/projetos"
+        className="mb-4 inline-block text-sm text-zinc-500 transition duration-200 ease-spring hover:text-gold-400"
+      >
         ← Projetos
       </Link>
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <h1 className="text-xl font-semibold text-zinc-100">{project.title}</h1>
+        <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">{project.title}</h1>
         <ProjectStatus id={project.id} status={project.status} />
       </div>
 
       {ad && (
-        <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-white/5 bg-ink-800 p-4">
+        <div className={`mb-5 flex flex-wrap items-center gap-4 ${card} p-4`}>
           {(() => {
             const thumb = ad.creatives.find((c) => c.localPath);
             if (!thumb?.localPath) return null;
             return thumb.kind === "video" ? (
-              <video src={media(thumb.localPath)} className="h-20 w-32 rounded-lg object-cover" muted />
+              <video src={media(thumb.localPath)} className="h-20 w-32 rounded-xl object-cover" muted />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={media(thumb.localPath)} alt="" className="h-20 w-32 rounded-lg object-cover" />
+              <img src={media(thumb.localPath)} alt="" className="h-20 w-32 rounded-xl object-cover" />
             );
           })()}
 
@@ -91,7 +95,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
           <Link
             href={`/ads/${ad.id}`}
-            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:border-gold-500/40 hover:text-gold-400"
+            className={`${btnSecondary} !h-auto px-3 py-1.5 text-xs`}
           >
             ver anúncio
           </Link>

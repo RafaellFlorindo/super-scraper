@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ofertasEstimadas } from "@/lib/funnel-hacking";
 import { scaleLabel } from "@/lib/scale-score";
+import { card, pill } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +31,12 @@ export default async function FunilHacking({
   return (
     <div className="p-8">
       <div className="mb-1 flex items-center gap-2">
-        <h1 className="text-2xl font-semibold text-zinc-100">Funil Hacking</h1>
-        <span className="rounded bg-gold-500/15 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-gold-400">
+        <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Funil Hacking</h1>
+        <span className={`${pill} bg-gold-500/15 uppercase tracking-wide text-gold-400`}>
           estimativa
         </span>
       </div>
-      <p className="mb-6 text-sm text-zinc-500">
+      <p className="mb-6 text-[13px] text-zinc-500">
         Quanto os concorrentes podem estar faturando, estimado a partir do quão escalado está o
         anúncio (variações, tempo no ar, amplitude) e do preço detectado no funil. A Ad Library
         não revela vendas nem gasto de ninguém — isto ordena quem vale estudar primeiro, não é
@@ -47,7 +48,7 @@ export default async function FunilHacking({
           <Link
             key={f.id}
             href={`/funil-hacking${f.id ? `?score=${f.id}` : ""}`}
-            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+            className={`rounded-xl px-3 py-1.5 text-sm transition duration-200 ease-spring active:scale-[0.97] ${
               score === f.id
                 ? "bg-gold-500/15 text-gold-400 ring-1 ring-gold-500/30"
                 : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
@@ -59,13 +60,13 @@ export default async function FunilHacking({
       </div>
 
       {ofertas.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/10 p-12 text-center text-sm text-zinc-500">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-12 text-center text-sm text-zinc-500">
           Nenhum anunciante nessa faixa de score ainda.
         </div>
       ) : (
         <>
           {comPreco.length === 0 && (
-            <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
+            <p className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
               Nenhum desses anúncios tem preço detectado ainda — a análise de funil roda em
               segundo plano. Sem preço não dá pra estimar faturamento, só o score de escala.
             </p>
@@ -78,17 +79,17 @@ export default async function FunilHacking({
                 <Link
                   key={o.advertiserId}
                   href={`/ads/${o.adId}`}
-                  className="group flex gap-3 rounded-xl border border-white/5 bg-ink-800 p-4 transition hover:border-gold-500/30 hover:bg-ink-700/40"
+                  className={`group flex gap-3 ${card} p-4 transition duration-200 ease-spring hover:-translate-y-0.5 hover:border-gold-500/30 hover:shadow-apple`}
                 >
                   {o.thumb ? (
                     o.thumb.endsWith(".mp4") ? (
-                      <video src={media(o.thumb)} className="h-20 w-20 shrink-0 rounded-lg object-cover" muted />
+                      <video src={media(o.thumb)} className="h-20 w-20 shrink-0 rounded-xl object-cover" muted />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={media(o.thumb)} alt="" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
+                      <img src={media(o.thumb)} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
                     )
                   ) : (
-                    <div className="h-20 w-20 shrink-0 rounded-lg bg-ink-700" />
+                    <div className="h-20 w-20 shrink-0 rounded-xl bg-ink-700" />
                   )}
 
                   <div className="min-w-0 flex-1">
@@ -111,7 +112,7 @@ export default async function FunilHacking({
                         <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-zinc-600">
                           Faturamento estimado / mês
                           <span
-                            className={`rounded px-1.5 py-0.5 normal-case tracking-normal ${
+                            className={`rounded-full px-1.5 py-0.5 normal-case tracking-normal ${
                               o.confianca === "alta"
                                 ? "bg-emerald-500/15 text-emerald-400"
                                 : o.confianca === "media"

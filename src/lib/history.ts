@@ -28,6 +28,31 @@ export interface Movimento {
   precoAgora: string | null;
   ativo: boolean;
   coletas: number;
+  /** Quantos outros anúncios (libraryId diferente) do mesmo anunciante testam a mesma oferta. */
+  outrosComEssaOferta: number;
+}
+
+/**
+ * Um anunciante escalando testa a MESMA oferta em dezenas de entradas
+ * separadas na Ad Library (cada combinação de posicionamento/público vira um
+ * `libraryId` próprio) — sem agrupar isso, "Novos no radar" mostrava a mesma
+ * headline do mesmo anunciante 4-5 vezes seguidas, e parecia bug de
+ * duplicação. Agrupa por anunciante+headline e mantém só a de maior score,
+ * contando o resto como "+N variações" em vez de escondê-las de vez.
+ */
+function agruparPorOferta(movimentos: Movimento[]): Movimento[] {
+  const porOferta = new Map<string, Movimento[]>();
+  for (const m of movimentos) {
+    const chave = `${m.advertiser}::${m.headline ?? m.adId}`;
+    const grupo = porOferta.get(chave);
+    if (grupo) grupo.push(m);
+    else porOferta.set(chave, [m]);
+  }
+
+  return [...porOferta.values()].map((grupo) => {
+    const melhor = grupo.reduce((a, b) => (b.scaleScore > a.scaleScore ? b : a));
+    return { ...melhor, outrosComEssaOferta: grupo.length - 1 };
+  });
 }
 
 export interface Historico {
@@ -76,33 +101,30 @@ export async function historico(days = 30): Promise<Historico> {
       precoAgora: comPreco[comPreco.length - 1]?.price ?? null,
       ativo: ultimo.isActive,
       coletas: snaps.length,
+      outrosComEssaOferta: 0, // recalculado por agruparPorOferta, por bucket
     };
   });
 
   const comparaveis = movimentos.filter((m) => m.coletas >= 2);
 
   return {
-    subindo: comparaveis
-      .filter((m) => m.delta > 0 && m.ativo)
+    subindo: agruparPorOferta(comparaveis.filter((m) => m.delta > 0 && m.ativo))
       .sort((a, b) => b.delta - a.delta)
       .slice(0, 12),
 
-    caindo: comparaveis
-      .filter((m) => m.delta < 0 && m.ativo)
+    caindo: agruparPorOferta(comparaveis.filter((m) => m.delta < 0 && m.ativo))
       .sort((a, b) => a.delta - b.delta)
       .slice(0, 12),
 
-    mortos: comparaveis
-      .filter((m) => !m.ativo)
+    mortos: agruparPorOferta(comparaveis.filter((m) => !m.ativo))
       .sort((a, b) => b.scaleScore - a.scaleScore)
       .slice(0, 12),
 
-    precoMudou: comparaveis
-      .filter((m) => m.precoAntes && m.precoAgora && m.precoAntes !== m.precoAgora)
-      .slice(0, 12),
+    precoMudou: agruparPorOferta(
+      comparaveis.filter((m) => m.precoAntes && m.precoAgora && m.precoAntes !== m.precoAgora)
+    ).slice(0, 12),
 
-    novos: movimentos
-      .filter((m) => m.coletas === 1)
+    novos: agruparPorOferta(movimentos.filter((m) => m.coletas === 1))
       .sort((a, b) => b.scaleScore - a.scaleScore)
       .slice(0, 12),
 

@@ -37,7 +37,7 @@ export default function TrackOfferButton({
     <button
       onClick={alternar}
       disabled={busy}
-      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition disabled:opacity-40 ${
+      className={`rounded-xl px-3 py-1.5 text-xs font-medium transition duration-200 ease-spring active:scale-[0.97] disabled:opacity-40 ${
         trackedId
           ? "border border-white/10 text-zinc-400 hover:border-red-500/40 hover:text-red-400"
           : "border border-gold-500/40 text-gold-400 hover:bg-gold-500/10"

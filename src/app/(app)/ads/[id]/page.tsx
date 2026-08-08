@@ -10,6 +10,7 @@ import CloneButton from "@/components/CloneButton";
 import RedownloadButton from "@/components/RedownloadButton";
 import TrackOfferButton from "@/components/TrackOfferButton";
 import RefreshAdButton from "@/components/RefreshAdButton";
+import { card, btnSecondary } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -87,7 +88,10 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="p-8">
-      <Link href="/" className="mb-6 inline-block text-sm text-zinc-500 hover:text-zinc-300">
+      <Link
+        href="/"
+        className="mb-6 inline-block text-sm text-zinc-500 transition duration-200 ease-spring hover:text-gold-400"
+      >
         ← Banco de Anúncios
       </Link>
 
@@ -107,7 +111,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
                 href={`https://www.facebook.com/ads/library/?id=${ad.libraryId}`}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300 transition hover:border-gold-500/40 hover:text-gold-400"
+                className={`inline-flex items-center gap-1.5 ${btnSecondary}`}
               >
                 Ver na Ad Library
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5" aria-hidden>
@@ -126,7 +130,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
             }`}
           >
             {ad.creatives.map((c) => (
-              <div key={c.id} className="overflow-hidden rounded-xl border border-white/5 bg-ink-800">
+              <div key={c.id} className={`overflow-hidden ${card}`}>
                 {c.localPath ? (
                   // Altura fixa com object-contain: criativo de anúncio é quase
                   // sempre vertical 9:16, e sem limite de altura um único vídeo
@@ -166,7 +170,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
                   <a
                     href={media(c.localPath)}
                     download
-                    className="block border-t border-white/5 py-2 text-center text-xs text-zinc-400 hover:text-gold-400"
+                    className="block border-t border-white/5 py-2 text-center text-xs text-zinc-400 transition duration-200 ease-spring hover:text-gold-400"
                   >
                     Baixar {c.kind === "video" ? "vídeo" : "imagem"}
                   </a>
@@ -178,7 +182,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
           {ad.primaryText && (
             <section>
               <h2 className="mb-2 text-sm font-medium text-zinc-400">Copy do anúncio</h2>
-              <p className="whitespace-pre-wrap rounded-xl border border-white/5 bg-ink-800 p-4 text-sm leading-relaxed">
+              <p className={`whitespace-pre-wrap ${card} p-4 text-sm leading-relaxed`}>
                 {ad.primaryText}
               </p>
             </section>
@@ -187,7 +191,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
           {transcripts.map((c) => (
             <section key={c.id}>
               <h2 className="mb-2 text-sm font-medium text-zinc-400">Transcrição da VSL</h2>
-              <p className="max-h-96 overflow-y-auto whitespace-pre-wrap rounded-xl border border-white/5 bg-ink-800 p-4 text-sm leading-relaxed text-zinc-300">
+              <p className={`max-h-96 overflow-y-auto whitespace-pre-wrap ${card} p-4 text-sm leading-relaxed text-zinc-300`}>
                 {c.transcript}
               </p>
             </section>
@@ -195,14 +199,14 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div className={`${card} p-5`}>
             <div className="mb-3 flex items-baseline gap-2">
               <span className={`text-3xl font-bold ${tone}`}>{ad.scaleScore}</span>
               <span className="text-sm text-zinc-500">{label}</span>
             </div>
 
             {tendencia && (
-              <div className={`mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${tendencia.tone}`}>
+              <div className={`mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium ${tendencia.tone}`}>
                 <span>{tendencia.seta}</span>
                 <span>{tendencia.texto}</span>
               </div>
@@ -231,7 +235,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div className={`${card} p-5`}>
             <h3 className="mb-3 text-sm font-medium text-zinc-400">Usar como referência</h3>
             <SaveToProject
               adId={ad.id}
@@ -240,7 +244,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
             />
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div className={`${card} p-5`}>
             <div className="mb-3 flex items-baseline justify-between">
               <h3 className="text-sm font-medium text-zinc-400">Infoproduto?</h3>
               <span className={ad.isInfoproduct ? "text-violet-300" : "text-zinc-500"}>
@@ -255,7 +259,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
             </ul>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div className={`${card} p-5`}>
             <h3 className="mb-3 text-sm font-medium text-zinc-400">Classificação</h3>
             <dl className="space-y-2 text-sm">
               <Row k="Nicho" v={ad.niche ?? "não classificado"} />
@@ -265,7 +269,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
             </dl>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div className={`${card} p-5`}>
             <h3 className="mb-3 text-sm font-medium text-zinc-400">Funil</h3>
             {ad.funnel ? (
               <dl className="space-y-2 text-sm">
@@ -276,7 +280,7 @@ export default async function AdDetail({ params }: { params: Promise<{ id: strin
                     href={ad.funnel.finalUrl ?? ad.ctaUrl ?? "#"}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="break-all text-xs text-gold-400 hover:underline"
+                    className="break-all text-xs text-gold-400 transition duration-200 ease-spring hover:underline"
                   >
                     {ad.funnel.finalUrl ?? ad.ctaUrl}
                   </a>

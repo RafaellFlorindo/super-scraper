@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { historico, type Movimento } from "@/lib/history";
+import { pill } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +21,8 @@ export default async function Historico({
     <div className="p-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-100">Histórico</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Histórico</h1>
+          <p className="mt-1 text-[13px] text-zinc-500">
             {h.comparaveis} de {h.total} anúncios com mais de uma coleta no período
           </p>
         </div>
@@ -30,7 +31,7 @@ export default async function Historico({
             <Link
               key={d}
               href={`/historico?dias=${d}`}
-              className={`rounded-lg px-3 py-1.5 text-sm transition ${
+              className={`rounded-xl px-3 py-1.5 text-sm transition duration-200 ease-spring active:scale-[0.97] ${
                 days === d
                   ? "bg-white/10 text-zinc-100"
                   : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
@@ -43,7 +44,7 @@ export default async function Historico({
       </div>
 
       {h.comparaveis === 0 && (
-        <p className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
+        <p className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
           O histórico compara coletas do mesmo anúncio ao longo do tempo. Minere o mesmo
           nicho de novo em alguns dias para começar a ver movimento.
         </p>
@@ -113,11 +114,11 @@ function Secao({
   return (
     <section>
       <div className="mb-1 flex items-center gap-2">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm ${t.chip}`}>
+        <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm ${t.chip}`}>
           {t.icone}
         </span>
         <h2 className="text-sm font-semibold text-zinc-100">{titulo}</h2>
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums ${t.chip}`}>
+        <span className={`${pill} font-medium tabular-nums ${t.chip}`}>
           {itens.length}
         </span>
       </div>
@@ -128,21 +129,28 @@ function Secao({
           <Link
             key={m.adId}
             href={`/ads/${m.adId}`}
-            className={`flex gap-3 rounded-xl border border-white/5 bg-gradient-to-b from-ink-700/60 to-ink-800 p-3 transition ${t.borda}`}
+            className={`flex gap-3 rounded-2xl border border-white/5 bg-gradient-to-b from-ink-700/60 to-ink-800 p-3 transition duration-200 ease-spring hover:-translate-y-0.5 hover:shadow-apple ${t.borda}`}
           >
             {m.thumb ? (
               m.thumb.endsWith(".mp4") ? (
-                <video src={media(m.thumb)} className="h-20 w-20 shrink-0 rounded-lg object-cover" muted />
+                <video src={media(m.thumb)} className="h-20 w-20 shrink-0 rounded-xl object-cover" muted />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={media(m.thumb)} alt="" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
+                <img src={media(m.thumb)} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
               )
             ) : (
-              <div className="h-20 w-20 shrink-0 rounded-lg bg-ink-700" />
+              <div className="h-20 w-20 shrink-0 rounded-xl bg-ink-700" />
             )}
 
             <div className="min-w-0 flex-1">
-              <div className="truncate text-xs text-zinc-500">{m.advertiser}</div>
+              <div className="flex items-center gap-1.5 truncate text-xs text-zinc-500">
+                <span className="truncate">{m.advertiser}</span>
+                {m.outrosComEssaOferta > 0 && (
+                  <span className={`${pill} shrink-0 bg-white/5 text-[10px] text-zinc-500`}>
+                    +{m.outrosComEssaOferta} variações
+                  </span>
+                )}
+              </div>
               <div className="line-clamp-2 text-sm text-zinc-200">
                 {m.headline ?? "(sem headline)"}
               </div>

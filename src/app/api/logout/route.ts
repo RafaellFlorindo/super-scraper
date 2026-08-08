@@ -4,5 +4,6 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   await destroySession();
-  return Response.redirect(new URL("/login", req.url), 303);
+  // app single-user: sem página de login, o middleware reloga como o admin
+  return Response.redirect(new URL("/", req.url), 303);
 }

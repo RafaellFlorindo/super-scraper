@@ -22,6 +22,12 @@ const RE_PARCELA = /(\d{1,2})\s?x\s?(?:de\s?)?R\$\s?(\d{1,3}(?:\.\d{3})*(?:,\d{2
 
 const OFERTA = /(por\s+apenas|apenas|s[oó]\s+hoje|hoje\s+por|[àa]\s+vista|oferta|promo[cç][aã]o|desconto|invista|assinatura|acesso\s+por|por\s*:?\s*$)/i;
 const ANCORA = /\bde\s*$/i;
+// "Receba até R$ 14.900" (auxílio/indenização/empréstimo) não é preço de
+// produto — sem isto, anúncio de benefício/financiamento (comum em nicho de
+// "auxílio maternidade") grava o valor do benefício como se fosse ticket, e o
+// faturamento estimado do Funil Hacking sai na casa de dezenas de milhões.
+const BENEFICIO =
+  /(receba|direito\s+a|benef[ií]cio|aux[ií]lio|indeniza[cç][aã]o|financiamento|empr[ée]stimo|saque|restitui[cç][aã]o)/i;
 
 function toNumber(s: string): number {
   return Number(s.replace(/\./g, "").replace(",", "."));
@@ -41,6 +47,7 @@ export function extractPrice(texto: string): string | null {
 
     const antes = texto.slice(Math.max(0, m.index - 40), m.index);
     if (ANCORA.test(antes)) continue; // "de R$ 497" riscado
+    if (BENEFICIO.test(antes)) continue; // "receba até R$ 14.900" não é preço
     // parcela ("12x de R$ 19,90") é tratada em separado, não como preço cheio
     if (/\dx\s?(?:de\s?)?$/i.test(antes)) continue;
 

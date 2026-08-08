@@ -32,7 +32,7 @@ export default function ProjectStatus({ id, status }: { id: string; status: stri
           key={value}
           onClick={() => mudar(value)}
           disabled={busy || value === status}
-          className={`rounded px-2 py-0.5 text-[11px] uppercase tracking-wide transition ${
+          className={`rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide transition duration-200 ease-spring ${
             value === status
               ? `${meta.tone} cursor-default`
               : "text-zinc-600 hover:bg-white/5 hover:text-zinc-300"

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import VideoRenderer from "./VideoRenderer";
+import { card, pill, btnPrimary, btnSecondary, linkGhost } from "@/lib/ui";
 
 interface Generated {
   id: string;
@@ -95,7 +96,7 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+      <div className={`${card} p-5`}>
         <h2 className="mb-1 text-sm font-medium text-zinc-300">
           Gerar criativos da nossa oferta
         </h2>
@@ -116,7 +117,7 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
                 <button
                   key={s.id}
                   onClick={() => setSource(s.id)}
-                  className={`overflow-hidden rounded-lg border transition ${
+                  className={`overflow-hidden rounded-xl border transition duration-200 ease-spring active:scale-[0.98] ${
                     s.id === source
                       ? "border-gold-500/60"
                       : "border-white/10 hover:border-white/25"
@@ -142,11 +143,7 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
               ))}
             </div>
 
-            <button
-              onClick={gerar}
-              disabled={busy}
-              className="rounded-lg bg-gold-500 px-5 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-40"
-            >
+            <button onClick={gerar} disabled={busy} className={btnPrimary}>
               {busy ? "Gerando 5 variações..." : "Gerar 5 variações"}
             </button>
           </>
@@ -158,10 +155,10 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
       {generated.map((g) => {
         const img = imagens[g.id] ?? g.imagePath;
         return (
-          <div key={g.id} className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div key={g.id} className={`${card} p-5`}>
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <span className="rounded bg-gold-500/15 px-2 py-0.5 text-xs text-gold-400">
+                <span className={`${pill} bg-gold-500/15 text-gold-400`}>
                   {g.angle ?? "sem ângulo"}
                 </span>
                 {g.headline && (
@@ -170,7 +167,7 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
               </div>
               <button
                 onClick={() => remover(g.id)}
-                className="text-xs text-zinc-600 hover:text-red-400"
+                className="text-xs text-zinc-600 transition duration-200 ease-spring hover:text-red-400"
               >
                 remover
               </button>
@@ -202,12 +199,12 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
                 <p className="mb-2 text-xs text-zinc-500">{g.imagePrompt}</p>
                 {img && img !== "loading" ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={media(img)} alt="" className="max-w-sm rounded-lg" />
+                  <img src={media(img)} alt="" className="max-w-sm rounded-xl" />
                 ) : (
                   <button
                     onClick={() => gerarImagem(g.id)}
                     disabled={img === "loading"}
-                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-40"
+                    className={`!h-auto px-3 py-1.5 text-xs ${btnSecondary} hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-40`}
                   >
                     {img === "loading" ? "gerando imagem..." : "Gerar imagem"}
                   </button>
@@ -225,7 +222,7 @@ export default function CreativeFactory({ projectId, sources, generated }: Props
                     .join("\n\n")
                 )
               }
-              className="mt-3 text-xs text-zinc-500 hover:text-gold-400"
+              className={`mt-3 ${linkGhost}`}
             >
               Copiar tudo
             </button>
@@ -240,7 +237,7 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
   return (
     <div className="mb-3">
       <div className="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">{titulo}</div>
-      <div className="rounded-lg bg-ink-900/60 p-3 text-sm leading-relaxed">{children}</div>
+      <div className="rounded-xl bg-ink-900/60 p-3 text-sm leading-relaxed">{children}</div>
     </div>
   );
 }

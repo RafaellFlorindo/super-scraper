@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { card, pill } from "@/lib/ui";
 
 const LABELS: Record<string, { label: string; tone: string; barra: string }> = {
   rascunho: { label: "rascunho", tone: "bg-white/5 text-zinc-400", barra: "bg-zinc-600" },
@@ -58,7 +59,7 @@ export default function ProjectCard({
 
   if (confirming) {
     return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-5">
+      <div className={`${card} border-red-500/30 bg-red-500/5 p-5`}>
         <div className="mb-1 font-medium text-zinc-100">Excluir &quot;{title}&quot;?</div>
         <p className="mb-4 text-xs text-zinc-400">
           Apaga as {conversationCount} conversa(s) e {creativeCount} criativo(s) gerado(s)
@@ -68,13 +69,13 @@ export default function ProjectCard({
           <button
             onClick={excluir}
             disabled={busy}
-            className="rounded-lg bg-red-500/90 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+            className="rounded-xl bg-red-500/90 px-4 py-1.5 text-sm font-medium text-white transition duration-200 ease-spring hover:bg-red-500 active:scale-[0.97] disabled:opacity-50"
           >
             {busy ? "Excluindo..." : "Sim, excluir"}
           </button>
           <button
             onClick={() => setConfirming(false)}
-            className="rounded-lg border border-white/10 px-4 py-1.5 text-sm text-zinc-300 hover:border-white/25"
+            className="rounded-xl border border-white/10 px-4 py-1.5 text-sm text-zinc-300 transition duration-200 ease-spring hover:border-white/25 active:scale-[0.97]"
           >
             Cancelar
           </button>
@@ -84,18 +85,18 @@ export default function ProjectCard({
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-ink-700 to-ink-800 transition hover:border-gold-500/40 hover:shadow-[0_0_0_1px_rgba(232,194,100,0.15),0_8px_24px_-8px_rgba(0,0,0,0.5)]">
+    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-ink-700 to-ink-800 transition duration-200 ease-spring hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-apple">
       {/* barra de status: identidade visual imediata, sem precisar ler o texto */}
       <div className={`h-1 w-full ${badge.barra}`} />
 
       <div className="flex flex-col p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <span className={`rounded px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${badge.tone}`}>
+          <span className={`${pill} uppercase tracking-wide ${badge.tone}`}>
             {badge.label}
           </span>
           <button
             onClick={() => setConfirming(true)}
-            className="text-xs text-zinc-600 opacity-0 transition group-hover:opacity-100 hover:text-red-400"
+            className="text-xs text-zinc-600 opacity-0 transition duration-200 ease-spring group-hover:opacity-100 hover:text-red-400"
             title="Excluir projeto"
           >
             excluir
@@ -104,7 +105,7 @@ export default function ProjectCard({
 
         <Link
           href={`/projetos/${id}`}
-          className="text-base font-semibold leading-snug text-zinc-100 transition group-hover:text-gold-300"
+          className="text-base font-semibold leading-snug text-zinc-100 transition duration-200 ease-spring group-hover:text-gold-300"
         >
           {title}
         </Link>
@@ -139,7 +140,7 @@ export default function ProjectCard({
               key={value}
               onClick={() => mudarStatus(value)}
               disabled={busy || value === status}
-              className={`rounded px-2 py-1 text-[11px] transition ${
+              className={`rounded-full px-2 py-1 text-[11px] transition duration-200 ease-spring ${
                 value === status
                   ? `${meta.tone} cursor-default`
                   : "text-zinc-600 hover:bg-white/5 hover:text-zinc-300"

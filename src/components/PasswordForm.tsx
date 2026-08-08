@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { campoInset, btnPrimary } from "@/lib/ui";
 
 export default function PasswordForm() {
   const router = useRouter();
@@ -25,8 +26,9 @@ export default function PasswordForm() {
       setBusy(false);
       return;
     }
-    // a troca derruba a sessão atual, então volta para o login
-    router.push("/login");
+    // a troca derruba a sessão atual; sem login manual, volta pro início e
+    // reconecta sozinho
+    router.push("/");
   }
 
   return (
@@ -38,7 +40,7 @@ export default function PasswordForm() {
           value={senhaAtual}
           onChange={(e) => setSenhaAtual(e.target.value)}
           required
-          className="w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none focus:border-gold-500/50"
+          className={`w-full ${campoInset}`}
         />
       </label>
       <label className="block">
@@ -50,21 +52,18 @@ export default function PasswordForm() {
           minLength={8}
           required
           placeholder="mínimo de 8 caracteres"
-          className="w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50"
+          className={`w-full ${campoInset} placeholder:text-zinc-600`}
         />
       </label>
       {erro && (
-        <p className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-400">
+        <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-400">
           {erro}
         </p>
       )}
-      <button
-        disabled={busy}
-        className="rounded-lg bg-gold-500 px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-50"
-      >
+      <button disabled={busy} className={btnPrimary}>
         {busy ? "Trocando..." : "Trocar senha"}
       </button>
-      <p className="text-[11px] text-zinc-600">Isso encerra sua sessão atual — você precisa entrar de novo.</p>
+      <p className="text-[11px] text-zinc-600">Isso encerra sua sessão atual — você é reconectado automaticamente.</p>
     </form>
   );
 }

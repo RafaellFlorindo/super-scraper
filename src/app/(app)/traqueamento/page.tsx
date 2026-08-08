@@ -15,6 +15,7 @@ import SpendForm from "@/components/SpendForm";
 import WebhookInfo from "@/components/WebhookInfo";
 import PaymentDonut from "@/components/PaymentDonut";
 import RevenueChart from "@/components/RevenueChart";
+import { card, campoInset, btnPrimary } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -54,11 +55,11 @@ export default async function Traqueamento({
 
   return (
     <div className="p-8">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">Traqueamento</h1>
-      <p className="mb-6 text-sm text-zinc-500">Vendas atribuídas por UTM</p>
+      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Traqueamento</h1>
+      <p className="mb-6 text-[13px] text-zinc-500">Vendas atribuídas por UTM</p>
 
       {/* filtros numa linha só, acima de tudo */}
-      <form className="mb-6 rounded-xl border border-white/5 bg-ink-800 p-4">
+      <form className={`mb-6 ${card} p-4`}>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Campo label="Período">
             <select name="dias" defaultValue={String(filtro.days)} className={INPUT}>
@@ -96,16 +97,14 @@ export default async function Traqueamento({
           </Campo>
 
           <div className="flex items-end">
-            <button className="w-full rounded-lg bg-gold-500 px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400">
-              Atualizar
-            </button>
+            <button className={`w-full ${btnPrimary}`}>Atualizar</button>
           </div>
         </div>
       </form>
 
       {/* hero: faturamento líquido em destaque + tendência, à la UTMify */}
       <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-[280px_1fr]">
-        <div className="flex flex-col justify-center rounded-xl border border-gold-500/20 bg-gradient-to-br from-gold-500/10 via-ink-800 to-ink-800 p-5">
+        <div className="flex flex-col justify-center rounded-2xl border border-gold-500/20 bg-gradient-to-br from-gold-500/10 via-ink-800 to-ink-800 p-5">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-gold-500/70">
             <IconMoney /> Faturamento líquido
           </div>
@@ -114,7 +113,7 @@ export default async function Traqueamento({
           </div>
           <div className="mt-1 text-xs text-zinc-500">pagas menos reembolso e chargeback</div>
         </div>
-        <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+        <div className={`${card} p-5`}>
           <RevenueChart dias={serie} />
         </div>
       </div>
@@ -195,19 +194,19 @@ export default async function Traqueamento({
       </div>
 
       {semGasto && (
-        <p className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
+        <p className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
           Nenhum gasto lançado no período. Sem isso não dá para calcular ROAS, ROI nem lucro.
           Lance abaixo, por campanha e por dia.
         </p>
       )}
 
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[340px_1fr]">
-        <section className="rounded-xl border border-white/5 bg-ink-800 p-5">
+        <section className={`${card} p-5`}>
           <h2 className="mb-4 text-sm font-medium text-zinc-300">Vendas por pagamento</h2>
           <PaymentDonut fatias={pag.fatias} total={pag.total} />
         </section>
 
-        <section className="overflow-x-auto rounded-xl border border-white/5">
+        <section className="overflow-x-auto rounded-2xl border border-white/5">
           <table className="w-full text-sm">
             <thead className="bg-ink-800 text-left text-xs uppercase tracking-wide text-zinc-500">
               <tr>
@@ -228,7 +227,7 @@ export default async function Traqueamento({
                 </tr>
               ) : (
                 rows.map((c) => (
-                  <tr key={c.campaign} className="bg-ink-800/40">
+                  <tr key={c.campaign} className="bg-ink-800/40 transition duration-200 ease-spring hover:bg-ink-700/40">
                     <td className="px-4 py-3 text-zinc-200">{c.campaign}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{c.paidCount}</td>
                     <td className="px-4 py-3 text-right tabular-nums text-emerald-400">
@@ -260,7 +259,7 @@ export default async function Traqueamento({
           <h2 className="mb-3 text-sm font-medium text-zinc-400">
             Criativos que mais venderam (utm_content)
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-white/5">
+          <div className="overflow-x-auto rounded-2xl border border-white/5">
             <table className="w-full text-sm">
               <thead className="bg-ink-800 text-left text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
@@ -272,7 +271,7 @@ export default async function Traqueamento({
               </thead>
               <tbody className="divide-y divide-white/5">
                 {creatives.map((c) => (
-                  <tr key={`${c.campaign}|${c.content}`} className="bg-ink-800/40">
+                  <tr key={`${c.campaign}|${c.content}`} className="bg-ink-800/40 transition duration-200 ease-spring hover:bg-ink-700/40">
                     <td className="px-4 py-3 text-zinc-200">{c.content}</td>
                     <td className="px-4 py-3 text-zinc-500">{c.campaign}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{c.count}</td>
@@ -295,7 +294,7 @@ export default async function Traqueamento({
       {recent.length > 0 && (
         <section className="mt-6">
           <h2 className="mb-3 text-sm font-medium text-zinc-400">Últimas vendas</h2>
-          <div className="overflow-x-auto rounded-xl border border-white/5">
+          <div className="overflow-x-auto rounded-2xl border border-white/5">
             <table className="w-full text-sm">
               <thead className="bg-ink-800 text-left text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
@@ -310,7 +309,7 @@ export default async function Traqueamento({
               </thead>
               <tbody className="divide-y divide-white/5">
                 {recent.map((s) => (
-                  <tr key={s.id} className="bg-ink-800/40">
+                  <tr key={s.id} className="bg-ink-800/40 transition duration-200 ease-spring hover:bg-ink-700/40">
                     <td className="px-4 py-3 text-zinc-500">
                       {s.occurredAt.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                     </td>
@@ -345,8 +344,7 @@ export default async function Traqueamento({
   );
 }
 
-const INPUT =
-  "w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none focus:border-gold-500/50";
+const INPUT = `w-full ${campoInset}`;
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -379,7 +377,7 @@ function Kpi({
       ? "bg-red-500/10 text-red-400"
       : "bg-white/5 text-zinc-400";
   return (
-    <div className="rounded-xl border border-white/5 bg-ink-800 p-4 transition hover:border-white/15">
+    <div className={`${card} p-4 transition duration-200 ease-spring hover:border-white/15`}>
       <div className="mb-2 flex items-center gap-2">
         {icon && <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${iconTone}`}>{icon}</span>}
         <div className="text-xs text-zinc-500">{label}</div>

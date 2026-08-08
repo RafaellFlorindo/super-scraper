@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { campoInset, card, pill, btnPrimary } from "@/lib/ui";
 
 interface Run {
   id: string;
@@ -40,6 +41,15 @@ export default function MinePanel() {
   async function start(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    // Sem isto o clique em cima do botão "desabilitado" simplesmente não fazia
+    // nada — o navegador nem chama este handler pra um <button disabled>, então
+    // parecia trava/bug em vez de avisar o motivo real.
+    if (workerOnline === false) {
+      setError("O worker não está rodando. Abra um terminal e rode npm run worker antes de minerar.");
+      return;
+    }
+
     const res = await fetch("/api/mine", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -53,13 +63,11 @@ export default function MinePanel() {
   const busy = run?.status === "running";
 
   return (
-    <div className="mb-6 rounded-xl border border-white/5 bg-ink-800 p-5">
+    <div className={`mb-6 ${card} p-5`}>
       <div className="mb-1 flex items-center gap-2">
         <h2 className="text-sm font-medium text-zinc-300">Minerar um nicho</h2>
         {workerOnline === false && (
-          <span className="rounded bg-red-500/15 px-2 py-0.5 text-[11px] text-red-400">
-            worker parado
-          </span>
+          <span className={`${pill} bg-red-500/15 text-red-400`}>worker parado</span>
         )}
       </div>
       <p className="mb-4 text-xs text-zinc-500">
@@ -78,13 +86,13 @@ export default function MinePanel() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="ex: emagrecimento, trade esportivo, marcenaria..."
           disabled={busy}
-          className="min-w-64 flex-1 rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50 disabled:opacity-50"
+          className={`min-w-64 flex-1 ${campoInset} placeholder:text-zinc-600 disabled:opacity-50`}
         />
         <select
           value={country}
           onChange={(e) => setCountry(e.target.value)}
           disabled={busy}
-          className="rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm disabled:opacity-50"
+          className={`${campoInset} disabled:opacity-50`}
         >
           {["BR", "PT", "US", "ES", "MX"].map((c) => (
             <option key={c} value={c}>{c}</option>
@@ -94,16 +102,13 @@ export default function MinePanel() {
           value={limit}
           onChange={(e) => setLimit(Number(e.target.value))}
           disabled={busy}
-          className="rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm disabled:opacity-50"
+          className={`${campoInset} disabled:opacity-50`}
         >
           {[20, 40, 80, 150].map((n) => (
             <option key={n} value={n}>{n} novos</option>
           ))}
         </select>
-        <button
-          disabled={busy || !query.trim() || workerOnline === false}
-          className="rounded-lg bg-gold-500 px-5 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-40"
-        >
+        <button disabled={busy || !query.trim()} className={btnPrimary}>
           {busy ? "Minerando..." : "Minerar"}
         </button>
       </form>

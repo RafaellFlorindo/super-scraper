@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import ProjectCard from "@/components/ProjectCard";
+import { campo, btnPrimary } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -45,8 +46,8 @@ export default async function Projetos({
 
   return (
     <div className="p-8">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">Projetos</h1>
-      <p className="mb-6 text-sm text-zinc-500">
+      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Projetos</h1>
+      <p className="mb-6 text-[13px] text-zinc-500">
         Cada projeto junta o anúncio modelado, as conversas com os agentes e os criativos
         gerados.
       </p>
@@ -55,11 +56,9 @@ export default async function Projetos({
         <input
           name="title"
           placeholder="Nome do projeto, ex: Bolos Caseiros VSL"
-          className="min-w-64 flex-1 rounded-lg border border-white/10 bg-ink-800 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50"
+          className={`min-w-64 flex-1 ${campo} placeholder:text-zinc-600`}
         />
-        <button className="rounded-lg bg-gold-500 px-5 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400">
-          Criar projeto
-        </button>
+        <button className={btnPrimary}>Criar projeto</button>
       </form>
 
       <div className="mb-5 flex gap-1">
@@ -67,7 +66,7 @@ export default async function Projetos({
           <Link
             key={f.id}
             href={`/projetos?filtro=${f.id}`}
-            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+            className={`rounded-xl px-3 py-1.5 text-sm transition duration-200 ease-spring active:scale-[0.97] ${
               filtro === f.id
                 ? "bg-white/10 text-zinc-100"
                 : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
@@ -82,7 +81,7 @@ export default async function Projetos({
       </div>
 
       {projects.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/10 p-16 text-center text-zinc-500">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-16 text-center text-zinc-500">
           {filtro === "concluido"
             ? "Nenhum projeto concluído ainda."
             : "Nenhum projeto. Modele um anúncio no Banco de Anúncios para começar."}

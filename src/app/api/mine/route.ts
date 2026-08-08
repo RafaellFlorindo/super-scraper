@@ -23,9 +23,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const run = await db.miningRun.create({ data: { query, country, limit } });
-  await db.job.create({
-    data: { kind: "mine", payload: JSON.stringify({ runId: run.id }), priority: 10 },
+  // numa transação: se a criação do job falhar, a mineração não pode ficar
+  // "running" órfã travando toda mineração futura (o check acima devolveria
+  // 409 para sempre, sem nenhum job para processá-la)
+  const run = await db.$transaction(async (tx) => {
+    const run = await tx.miningRun.create({ data: { query, country, limit } });
+    await tx.job.create({
+      data: { kind: "mine", payload: JSON.stringify({ runId: run.id }), priority: 10 },
+    });
+    return run;
   });
 
   return Response.json({ runId: run.id });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { btnSecondary } from "@/lib/ui";
 
 /** Clona a página de destino de um anúncio direto da tela dele. */
 export default function CloneButton({ url, adId }: { url: string; adId: string }) {
@@ -29,7 +30,7 @@ export default function CloneButton({ url, adId }: { url: string; adId: string }
     return (
       <p className="text-xs text-emerald-400">
         Na fila. Acompanhe em{" "}
-        <a href="/clones" className="underline">
+        <a href="/clones" className="underline underline-offset-2">
           Páginas Clonadas
         </a>{" "}
         (/p/{slug}).
@@ -42,7 +43,7 @@ export default function CloneButton({ url, adId }: { url: string; adId: string }
       <button
         onClick={clonar}
         disabled={estado === "busy"}
-        className="w-full rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-40"
+        className={`w-full !h-auto px-3 py-2 text-xs ${btnSecondary} hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-40`}
       >
         {estado === "busy" ? "Enfileirando..." : "Clonar página de destino"}
       </button>

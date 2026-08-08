@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { btnSecondary } from "@/lib/ui";
 
 /**
  * Aparece no lugar de um criativo que falhou ao baixar. As URLs de mídia da
@@ -50,7 +51,7 @@ export default function RedownloadButton({
         <button
           onClick={tentar}
           disabled={busy || enfileirado}
-          className="mt-1 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-50"
+          className={`mt-1 !h-auto px-3 py-1.5 text-xs ${btnSecondary} hover:border-gold-500/40 hover:text-gold-400 disabled:opacity-50`}
         >
           {enfileirado ? "Na fila, aguarde..." : busy ? "Enfileirando..." : "Tentar de novo"}
         </button>

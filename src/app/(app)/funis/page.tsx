@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import RefreshFunnelsButton from "@/components/RefreshFunnelsButton";
+import { card } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -59,15 +60,15 @@ export default async function Funis({
     <div className="p-8">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-100">Mapa de Funis</h1>
-          <p className="mt-1 text-sm text-zinc-500">Para onde cada anúncio manda o clique</p>
+          <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Mapa de Funis</h1>
+          <p className="mt-1 text-[13px] text-zinc-500">Para onde cada anúncio manda o clique</p>
         </div>
         <RefreshFunnelsButton minScore={minScore} />
       </div>
 
       {/* Estado da análise. Sem isto não dá para saber se a lista está completa
           ou se ainda tem centenas de anúncios esperando na fila. */}
-      <div className="mb-6 rounded-xl border border-white/5 bg-ink-800 p-4">
+      <div className={`mb-6 ${card} p-4`}>
         <div className="mb-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Info label="Destinos mapeados" valor={String(totalFunis)} />
           <Info label="Analisados hoje" valor={String(doDia)} tom={doDia > 0 ? "bom" : undefined} />
@@ -100,7 +101,7 @@ export default async function Funis({
           <Link
             key={q.id}
             href={`/funis?ordem=${ordem}${q.id ? `&quente=${q.id}` : ""}`}
-            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+            className={`rounded-xl px-3 py-1.5 text-sm transition duration-200 ease-spring active:scale-[0.97] ${
               quente === q.id
                 ? "bg-gold-500/15 text-gold-400 ring-1 ring-gold-500/30"
                 : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
@@ -114,7 +115,7 @@ export default async function Funis({
           <Link
             key={o.id}
             href={`/funis?ordem=${o.id}${quente ? `&quente=${quente}` : ""}`}
-            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+            className={`rounded-xl px-3 py-1.5 text-sm transition duration-200 ease-spring active:scale-[0.97] ${
               ordem === o.id
                 ? "bg-white/10 text-zinc-100"
                 : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
@@ -125,7 +126,7 @@ export default async function Funis({
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-white/5">
+      <div className="overflow-x-auto rounded-2xl border border-white/5">
         <table className="w-full text-sm">
           <thead className="bg-ink-800 text-left text-xs uppercase tracking-wide text-zinc-500">
             <tr>
@@ -146,12 +147,12 @@ export default async function Funis({
               </tr>
             ) : (
               funnels.map((f) => (
-                <tr key={f.id} className="bg-ink-800/40 hover:bg-ink-700/40">
+                <tr key={f.id} className="bg-ink-800/40 transition duration-200 ease-spring hover:bg-ink-700/40">
                   <td className="px-4 py-3 font-medium tabular-nums text-gold-400">
                     {f.ad.scaleScore}
                   </td>
                   <td className="px-4 py-3">
-                    <Link href={`/ads/${f.adId}`} className="hover:text-gold-400">
+                    <Link href={`/ads/${f.adId}`} className="transition duration-200 ease-spring hover:text-gold-400">
                       {f.ad.advertiser.name}
                     </Link>
                   </td>

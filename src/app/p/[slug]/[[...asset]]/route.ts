@@ -42,8 +42,10 @@ export async function GET(
   const relativo = asset?.length ? asset.join("/") : "index.html";
   const arquivo = path.join(raiz, relativo);
 
-  // impede sair da pasta do clone com ../
-  if (!path.resolve(arquivo).startsWith(path.resolve(raiz))) {
+  // impede sair da pasta do clone com ../ (e de uma pasta irmã com prefixo igual)
+  const raizResolvida = path.resolve(raiz);
+  const arquivoResolvido = path.resolve(arquivo);
+  if (arquivoResolvido !== raizResolvida && !arquivoResolvido.startsWith(raizResolvida + path.sep)) {
     return new Response("Forbidden", { status: 403 });
   }
   if (!fs.existsSync(arquivo) || fs.statSync(arquivo).isDirectory()) {

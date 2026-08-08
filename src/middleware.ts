@@ -8,7 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Node. Aqui o objetivo é só evitar renderizar página protegida para quem
  * chegou sem cookie nenhum.
  */
-const PUBLICAS = ["/login", "/instalar"];
+const PUBLICAS = ["/instalar", "/api/auto-login"];
 
 /**
  * Rotas que precisam ficar abertas mesmo sem sessão:
@@ -28,9 +28,17 @@ export function middleware(req: NextRequest) {
   }
 
   if (!req.cookies.get("scrapper_session")) {
+    // API e qualquer método que não seja navegação de documento não podem ser
+    // redirecionados: o 307 preserva o método, e um POST batendo em
+    // /api/auto-login (só GET) vira 405 silencioso.
+    if (pathname.startsWith("/api/") || req.method !== "GET") {
+      return NextResponse.json({ erro: "Sessão inválida ou expirada." }, { status: 401 });
+    }
+
     const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    // volta para onde a pessoa queria ir depois de entrar
+    // app single-user: em vez de pedir login, entra direto como o admin
+    url.pathname = "/api/auto-login";
+    url.search = "";
     url.searchParams.set("proximo", pathname);
     return NextResponse.redirect(url);
   }

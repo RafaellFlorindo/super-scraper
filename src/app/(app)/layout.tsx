@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/api/auto-login");
 
   // calculado aqui e não num client fetch: é leitura simples do banco, e
   // evita mais uma rota de API só para preencher o cabeçalho
@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* barra fina para o caminho de vitórias e o menu do usuário, fixa no topo */}
-        <header className="sticky top-0 z-40 flex items-center justify-end gap-3 border-b border-white/5 bg-ink-900/80 px-8 py-3 backdrop-blur">
+        <header className="sticky top-0 z-40 flex items-center justify-end gap-3 border-b border-white/5 bg-ink-900/70 px-8 py-3 backdrop-blur-xl backdrop-saturate-150">
           <AchievementsWidget data={achievements} />
           <UserMenu user={user} />
         </header>

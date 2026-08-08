@@ -123,12 +123,3 @@ export async function criarUsuario(opts: {
     },
   });
 }
-
-export async function autenticar(email: string, senha: string) {
-  const user = await db.user.findUnique({ where: { email: email.toLowerCase().trim() } });
-  // roda o scrypt mesmo sem usuário, para o tempo de resposta não denunciar
-  // quais e-mails existem
-  const hash = user?.passwordHash ?? hashPassword("placeholder");
-  const ok = verifyPassword(senha, hash);
-  return user && ok ? user : null;
-}

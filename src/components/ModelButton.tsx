@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { btnAccent } from "@/lib/ui";
 
 /**
  * Leva o anúncio direto para o Estúdio de Agentes já configurado para modelá-lo.
@@ -33,7 +34,7 @@ export default function ModelButton({
     <button
       onClick={modelar}
       disabled={busy}
-      className={`rounded-lg bg-sun-400 px-4 py-2 text-sm font-medium text-ink-900 transition hover:bg-sun-300 disabled:opacity-50 ${className}`}
+      className={`${btnAccent} ${className}`}
     >
       {busy ? "Abrindo estúdio..." : "Modelar esta oferta"}
     </button>

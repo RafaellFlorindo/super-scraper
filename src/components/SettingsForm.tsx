@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { card, campoInset, pill, btnPrimary, btnSecondary } from "@/lib/ui";
 
 interface Item {
   key: string;
@@ -60,23 +61,17 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
       {items.map((item) => {
         const result = tests[item.key];
         return (
-          <div key={item.key} className="rounded-xl border border-white/5 bg-ink-800 p-5">
+          <div key={item.key} className={`${card} p-5`}>
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <label className="text-sm font-medium text-zinc-200">{item.label}</label>
               {item.configured && item.source === "env" && (
-                <span className="rounded bg-white/5 px-1.5 py-0.5 text-[11px] text-zinc-500">
-                  vindo do .env
-                </span>
+                <span className={`${pill} bg-white/5 text-zinc-500`}>vindo do .env</span>
               )}
               {item.configured && item.source === "app" && (
-                <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[11px] text-emerald-400">
-                  salvo no app
-                </span>
+                <span className={`${pill} bg-emerald-500/15 text-emerald-400`}>salvo no app</span>
               )}
               {!item.configured && item.secret && (
-                <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[11px] text-amber-400">
-                  não configurado
-                </span>
+                <span className={`${pill} bg-amber-500/15 text-amber-400`}>não configurado</span>
               )}
             </div>
 
@@ -87,7 +82,7 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
                   href={item.url}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="text-gold-400 hover:underline"
+                  className="text-gold-400 transition duration-200 ease-spring hover:underline"
                 >
                   Pegar chave →
                 </a>
@@ -99,7 +94,7 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
                 <select
                   value={draft[item.key] ?? item.preview}
                   onChange={(e) => setDraft((d) => ({ ...d, [item.key]: e.target.value }))}
-                  className="flex-1 rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm"
+                  className={`flex-1 ${campoInset}`}
                 >
                   {item.options!.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -114,7 +109,7 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
                   value={draft[item.key] ?? (item.secret ? "" : item.preview)}
                   onChange={(e) => setDraft((d) => ({ ...d, [item.key]: e.target.value }))}
                   placeholder={item.secret ? item.preview || "cole a chave aqui" : "0"}
-                  className="min-w-64 flex-1 rounded-lg border border-white/10 bg-ink-900 px-3 py-2 font-mono text-sm outline-none placeholder:font-sans placeholder:text-zinc-600 focus:border-gold-500/50"
+                  className={`min-w-64 flex-1 ${campoInset} font-mono placeholder:font-sans placeholder:text-zinc-600`}
                 />
               )}
 
@@ -126,7 +121,7 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
                       WEBHOOK_TOKEN: crypto.randomUUID().replace(/-/g, ""),
                     }))
                   }
-                  className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 hover:border-gold-500/40 hover:text-gold-400"
+                  className={`${btnSecondary} hover:border-gold-500/40 hover:text-gold-400`}
                 >
                   Gerar
                 </button>
@@ -135,7 +130,7 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
               {TESTABLE[item.key] && item.configured && (
                 <button
                   onClick={() => test(item.key)}
-                  className="rounded-lg border border-white/10 px-4 py-2 text-sm text-zinc-300 hover:border-gold-500/40 hover:text-gold-400"
+                  className={`${btnSecondary} hover:border-gold-500/40 hover:text-gold-400`}
                 >
                   {result === "loading" ? "testando..." : "Testar"}
                 </button>
@@ -152,11 +147,7 @@ export default function SettingsForm({ initial }: { initial: Item[] }) {
       })}
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={save}
-          disabled={!dirty || saving}
-          className="rounded-lg bg-gold-500 px-6 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-40"
-        >
+        <button onClick={save} disabled={!dirty || saving} className={`${btnPrimary} px-6`}>
           {saving ? "Salvando..." : "Salvar"}
         </button>
         {savedAt && <span className="text-xs text-emerald-400">Salvo às {savedAt}</span>}

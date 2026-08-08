@@ -27,3 +27,6 @@ storage/
 # sistema
 .DS_Store
 Thumbs.db
+
+# log do worker auto-iniciado pelo servidor (instrumentation.ts)
+worker.log

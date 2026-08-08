@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { campoInset, btnPrimary } from "@/lib/ui";
 
 interface Props {
   name: string;
@@ -11,8 +12,7 @@ interface Props {
   avatarUrl: string | null;
 }
 
-const INPUT =
-  "w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50";
+const INPUT = `w-full ${campoInset} placeholder:text-zinc-600`;
 
 export default function ProfileForm({ name, email, cnpj, phone, avatarUrl }: Props) {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function ProfileForm({ name, email, cnpj, phone, avatarUrl }: Pro
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-full ring-2 ring-gold-500/30 transition hover:ring-gold-500/60"
+          className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-full ring-2 ring-gold-500/30 transition duration-200 ease-spring hover:ring-gold-500/60 active:scale-[0.97]"
           title="Trocar foto"
         >
           {preview ? (
@@ -53,7 +53,7 @@ export default function ProfileForm({ name, email, cnpj, phone, avatarUrl }: Pro
               {name.slice(0, 1).toUpperCase()}
             </span>
           )}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[10px] font-medium uppercase tracking-wide text-white opacity-0 transition group-hover:opacity-100">
+          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[10px] font-medium uppercase tracking-wide text-white opacity-0 transition duration-200 ease-spring group-hover:opacity-100">
             trocar
           </span>
         </button>
@@ -95,10 +95,7 @@ export default function ProfileForm({ name, email, cnpj, phone, avatarUrl }: Pro
         <input name="phone" defaultValue={phone} placeholder="(11) 99999-9999" className={INPUT} />
       </label>
 
-      <button
-        disabled={busy}
-        className="rounded-lg bg-gold-500 px-5 py-2 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-50"
-      >
+      <button disabled={busy} className={btnPrimary}>
         {busy ? "Salvando..." : "Salvar"}
       </button>
 

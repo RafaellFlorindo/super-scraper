@@ -8,8 +8,8 @@ export default async function Config() {
 
   return (
     <div className="p-8">
-      <h1 className="mb-1 text-2xl font-semibold text-zinc-100">Configurações</h1>
-      <p className="mb-6 text-sm text-zinc-500">
+      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Configurações</h1>
+      <p className="mb-6 text-[13px] text-zinc-500">
         Chaves de API e comportamento da coleta. Vale para o app e para o worker, sem
         precisar mexer em arquivo nenhum.
       </p>

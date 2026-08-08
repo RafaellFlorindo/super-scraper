@@ -9,7 +9,7 @@ async function instalar(_prev: unknown, formData: FormData) {
 
   // revalida no servidor: sem isto, qualquer um poderia criar um admin depois
   // que o app já está instalado
-  if (!(await precisaInstalar())) redirect("/login");
+  if (!(await precisaInstalar())) redirect("/");
 
   const nome = String(formData.get("nome") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -24,6 +24,6 @@ async function instalar(_prev: unknown, formData: FormData) {
 }
 
 export default async function Instalar() {
-  if (!(await precisaInstalar())) redirect("/login");
-  return <LoginForm action={instalar} modo="instalar" />;
+  if (!(await precisaInstalar())) redirect("/");
+  return <LoginForm action={instalar} />;
 }

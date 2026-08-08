@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { absolute } from "@/lib/storage";
 
+export const runtime = "nodejs";
+
 const TYPES: Record<string, string> = {
   ".mp4": "video/mp4",
   ".jpg": "image/jpeg",
@@ -22,9 +24,12 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
   const { path: parts } = await ctx.params;
   const rel = parts.join("/");
 
-  // impede escapar da pasta storage via ../
+  // impede escapar da pasta storage via ../ (e de uma pasta irmã com prefixo igual, tipo storage-bak)
   const file = absolute(rel);
-  if (!file.startsWith(absolute(""))) return new Response("Forbidden", { status: 403 });
+  const raizStorage = absolute("");
+  if (file !== raizStorage && !file.startsWith(raizStorage + path.sep)) {
+    return new Response("Forbidden", { status: 403 });
+  }
   if (!fs.existsSync(file)) return new Response("Not found", { status: 404 });
 
   const size = fs.statSync(file).size;

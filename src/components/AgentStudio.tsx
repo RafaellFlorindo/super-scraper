@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { card, campoInset } from "@/lib/ui";
 
 interface Msg {
   id: string;
@@ -130,7 +131,7 @@ export default function AgentStudio({
           <button
             onClick={runChain}
             disabled={streaming}
-            className="w-full rounded-xl bg-gold-500 px-3 py-3 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-50"
+            className="w-full rounded-xl bg-gold-500 px-3 py-3 text-sm font-medium text-ink-900 transition duration-200 ease-spring hover:bg-gold-400 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
           >
             {chainStep ? `Rodando ${chainStep}...` : "Rodar os 3 em sequência"}
           </button>
@@ -140,14 +141,14 @@ export default function AgentStudio({
           <button
             key={a.id}
             onClick={() => setActive(a.id)}
-            className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
+            className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition duration-200 ease-spring active:scale-[0.98] ${
               a.id === active
                 ? "border-gold-500/40 bg-gradient-to-r from-gold-500/15 to-transparent ring-1 ring-gold-500/20"
                 : "border-white/5 bg-ink-800 hover:border-white/15 hover:bg-ink-700/60"
             }`}
           >
             <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg transition ${
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg transition duration-200 ease-spring ${
                 a.id === active ? "bg-gold-500 text-ink-900" : "bg-white/5"
               }`}
             >
@@ -166,7 +167,7 @@ export default function AgentStudio({
           </button>
         ))}
 
-        <div className="rounded-xl border border-white/5 bg-ink-800 p-3 text-xs text-zinc-500">
+        <div className={`${card} p-3 text-xs text-zinc-500`}>
           {savedCount > 0 ? (
             <>
               <span className="text-gold-400">{savedCount}</span> anúncio(s) de referência
@@ -184,7 +185,7 @@ export default function AgentStudio({
 
       <div className={active === "fabrica" ? "space-y-5" : "contents"}>
       <div
-        className={`flex flex-col rounded-xl border border-white/5 bg-ink-800 ${
+        className={`flex flex-col ${card} ${
           active === "fabrica" ? "h-[480px]" : "h-[calc(100vh-220px)]"
         }`}
       >
@@ -198,7 +199,7 @@ export default function AgentStudio({
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
           {messages.length === 0 && (
             <div className="space-y-3">
-              <div className="rounded-xl bg-ink-700/50 p-4 text-sm text-zinc-400">
+              <div className="rounded-2xl bg-ink-700/50 p-4 text-sm text-zinc-400">
                 {modeling
                   ? "Já estou com o anúncio modelado em mãos: copy, transcrição da VSL, preço e ângulo do concorrente. É só mandar."
                   : agent.greeting}
@@ -207,7 +208,7 @@ export default function AgentStudio({
                 <button
                   onClick={(e) => send(e, seeds[active])}
                   disabled={streaming}
-                  className="w-full rounded-xl border border-gold-500/30 bg-gold-500/10 p-4 text-left text-sm text-gold-300 transition hover:bg-gold-500/15 disabled:opacity-40"
+                  className="w-full rounded-2xl border border-gold-500/30 bg-gold-500/10 p-4 text-left text-sm text-gold-300 transition duration-200 ease-spring hover:bg-gold-500/15 active:scale-[0.99] disabled:opacity-40"
                 >
                   <span className="mb-1 block text-[11px] uppercase tracking-wide text-gold-500/70">
                     Começar direto
@@ -223,7 +224,7 @@ export default function AgentStudio({
               className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
             >
               <div
-                className={`max-w-[85%] whitespace-pre-wrap rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   m.role === "user"
                     ? "bg-gold-500/15 text-zinc-100"
                     : "bg-ink-700/60 text-zinc-200"
@@ -233,7 +234,7 @@ export default function AgentStudio({
                 {m.role === "assistant" && m.content && (
                   <button
                     onClick={() => navigator.clipboard.writeText(m.content)}
-                    className="mt-3 block text-xs text-zinc-500 hover:text-gold-400"
+                    className="mt-3 block text-xs text-zinc-500 transition duration-200 ease-spring hover:text-gold-400"
                   >
                     Copiar
                   </button>
@@ -253,11 +254,11 @@ export default function AgentStudio({
             }}
             rows={2}
             placeholder={`Falar com ${agent.name}...  (Enter envia, Shift+Enter quebra linha)`}
-            className="flex-1 resize-none rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50"
+            className={`flex-1 resize-none !h-auto py-2 ${campoInset} placeholder:text-zinc-600`}
           />
           <button
             disabled={streaming || !input.trim()}
-            className="rounded-lg bg-gold-500 px-5 text-sm font-medium text-ink-900 transition hover:bg-gold-400 disabled:opacity-40"
+            className="rounded-xl bg-gold-500 px-5 text-sm font-medium text-ink-900 transition duration-200 ease-spring hover:bg-gold-400 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
           >
             {streaming ? "..." : "Enviar"}
           </button>

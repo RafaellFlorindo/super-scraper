@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { card, campoInset, btnPrimary } from "@/lib/ui";
 
 /** Lançamento manual de gasto. Sem isto o dashboard só mostra receita, nunca ROI. */
 export default function SpendForm({ campaigns }: { campaigns: string[] }) {
@@ -29,7 +30,7 @@ export default function SpendForm({ campaigns }: { campaigns: string[] }) {
   }
 
   return (
-    <div className="rounded-xl border border-white/5 bg-ink-800 p-5">
+    <div className={`${card} p-5`}>
       <h2 className="mb-1 text-sm font-medium text-zinc-300">Lançar gasto de anúncio</h2>
       <p className="mb-4 text-xs text-zinc-500">
         Por campanha e por dia. Lançar de novo o mesmo par substitui o valor anterior.
@@ -41,7 +42,7 @@ export default function SpendForm({ campaigns }: { campaigns: string[] }) {
           value={campaign}
           onChange={(e) => setCampaign(e.target.value)}
           placeholder="utm_campaign, igual ao do link do anúncio"
-          className="w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50"
+          className={`w-full ${campoInset} placeholder:text-zinc-600`}
         />
         <datalist id="campanhas">
           {campaigns.map((c) => (
@@ -54,18 +55,15 @@ export default function SpendForm({ campaigns }: { campaigns: string[] }) {
             type="date"
             value={day}
             onChange={(e) => setDay(e.target.value)}
-            className="rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm"
+            className={campoInset}
           />
           <input
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="R$ investido, ex: 250,00"
-            className="flex-1 rounded-lg border border-white/10 bg-ink-900 px-3 py-2 text-sm outline-none placeholder:text-zinc-600 focus:border-gold-500/50"
+            className={`flex-1 ${campoInset} placeholder:text-zinc-600`}
           />
-          <button
-            disabled={!campaign || !amount}
-            className="rounded-lg bg-gold-500 px-5 py-2 text-sm font-medium text-ink-900 hover:bg-gold-400 disabled:opacity-40"
-          >
+          <button disabled={!campaign || !amount} className={btnPrimary}>
             Lançar
           </button>
         </div>

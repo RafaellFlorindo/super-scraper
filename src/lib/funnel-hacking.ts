@@ -9,6 +9,7 @@
  * para infoproduto, depois multiplica pelo preço detectado no funil.
  */
 import { db } from "./db";
+import { extractPrice } from "./price-extract";
 
 /** Faixa de vendas/dia por faixa de score — validado contra o senso comum do
  * nicho (quem só testa vende poucas unidades; quem escala pesado, dezenas a
@@ -20,16 +21,22 @@ function vendasDiaPorScore(score: number): [number, number] {
   return [0, 2];
 }
 
-/** Extrai um valor em reais de textos como "R$ 197,00", "197", "US$ 47". */
+/**
+ * Extrai um valor em reais de texto livre. `detectedPrice` (funil) já vem
+ * formatado por `extractPrice`; `offerPrice` é texto solto do LLM — tipo "12x
+ * de R$ 97,00" ou "de R$ 297 por R$ 197" — que a versão antiga desta função
+ * tentava resolver removendo tudo que não fosse dígito/vírgula/ponto e dando
+ * `Number()` direto no resto: "R$ 1.997" (sem vírgula) virava 1.997 em vez de
+ * 1997, e "12x de R$ 97,00" virava 1297 (concatenava o "12" com o "97,00").
+ * Reaproveitar `extractPrice` resolve os dois casos de uma vez, porque ele já
+ * entende parcelamento, âncora riscada e separador de milhar.
+ */
 export function parsePrice(texto: string | null | undefined): number | null {
   if (!texto) return null;
-  const limpo = texto.replace(/[^\d,.]/g, "");
-  if (!limpo) return null;
-  // "1.997,00" -> "1997.00" | "197,00" -> "197.00" | "197.00" já ok
-  const normalizado = limpo.includes(",")
-    ? limpo.replace(/\./g, "").replace(",", ".")
-    : limpo;
-  const n = Number(normalizado);
+  const formatado = extractPrice(texto);
+  if (!formatado) return null;
+  // extractPrice sempre devolve "R$ X.XXX,XX" em locale pt-BR fixo — parse seguro
+  const n = Number(formatado.replace(/[^\d,]/g, "").replace(",", "."));
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
