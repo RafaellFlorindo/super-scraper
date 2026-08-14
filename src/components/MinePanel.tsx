@@ -64,9 +64,11 @@ export default function MinePanel() {
   const busy = run?.status === "running";
 
   return (
-    <div className={`mb-6 ${card} p-5`}>
+    // glow-ring: esta é a caixa mais importante da tela — é daqui que sai
+    // toda mineração — então é ela, e só ela, que carrega o contorno aceso.
+    <div className={`mb-6 ${card} glow-ring p-5`}>
       <div className="mb-1 flex items-center gap-2">
-        <h2 className="text-sm font-medium text-zinc-300">Minerar um nicho</h2>
+        <h2 className="text-sm font-medium text-zinc-200">Minerar um nicho</h2>
         {workerOnline === false && (
           <span className={`${pill} bg-red-500/15 text-red-400`}>worker parado</span>
         )}

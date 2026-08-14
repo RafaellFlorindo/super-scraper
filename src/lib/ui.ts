@@ -47,9 +47,14 @@ export const pageTitle =
 /** Rótulo miúdo em caixa alta acima do título (o "eyebrow" editorial). */
 export const eyebrow = "eyebrow";
 
-/** Botão primário (ação principal violeta da tela: Filtrar, Minerar, Salvar...). */
+/**
+ * Botão primário (ação principal da tela: Filtrar, Minerar, Salvar...).
+ * Gradiente de três tons em vez de fill chapado — é o único elemento que
+ * carrega essa temperatura extra, então quando ele acende, todo o resto que
+ * está discreto ao redor faz ele saltar de verdade.
+ */
 export const btnPrimary =
-  "h-10 rounded-xl bg-gold-500 px-5 text-sm font-medium text-white shadow-[0_6px_20px_-6px_rgba(108,99,255,0.7)] transition duration-200 ease-spring hover:bg-gold-400 hover:shadow-[0_8px_28px_-6px_rgba(108,99,255,0.9)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100";
+  "h-10 rounded-xl bg-[linear-gradient(115deg,#7c6fff_0%,#6c63ff_45%,#5636c9_100%)] bg-[length:160%_100%] bg-[position:0%_0%] px-5 text-sm font-medium text-white shadow-[0_2px_1px_rgba(255,255,255,0.25)_inset,0_6px_20px_-6px_rgba(108,99,255,0.75)] transition-all duration-300 ease-spring hover:bg-[position:100%_0%] hover:shadow-[0_2px_1px_rgba(255,255,255,0.3)_inset,0_10px_32px_-6px_rgba(108,99,255,1)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100";
 
 /** Botão de destaque pontual (dourado de verdade: Modelar oferta, CTAs de conversão). */
 export const btnAccent =

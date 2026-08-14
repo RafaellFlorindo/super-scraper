@@ -1,35 +1,40 @@
 /**
- * Fundo único da área logada, atrás de tudo (sidebar + cabeçalho + conteúdo).
- *
- * A ideia é ter UMA fonte de luz na tela — um bloom violeta no alto à
- * esquerda que decai até o preto — em vez de preencher retângulos com cinza.
- * É isso que dá profundidade: as superfícies por cima parecem iluminadas por
- * essa luz, não coladas num fundo chapado.
- *
- * `fixed inset-0` de propósito: preso à viewport, não à altura do conteúdo,
- * então o desenho é idêntico numa página curta e numa de vinte rolagens.
+ * Fundo único da área logada — preto absoluto + grid de linhas + um bloom
+ * de canto, na linha direta das referências: preto de verdade (não um
+ * "ink-900" arroxeado que nunca lê como preto), grade técnica visível (não
+ * pontinhos discretos), e o acento vive em GLOW pontual nos elementos que
+ * importam (ver `.glow-ring` em globals.css), não espalhado no fundo.
  */
 export default function AppBackground() {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ink-900">
-      {/* bloom principal: a "lâmpada" da tela, atrás do topo da navegação */}
-      <div className="absolute -left-40 -top-56 h-[46rem] w-[46rem] rounded-full bg-[#5b4fe0]/[0.22] blur-[120px]" />
-      {/* rebatida fria bem mais fraca, pra luz não morrer no meio da tela */}
-      <div className="absolute left-1/3 top-1/4 h-[34rem] w-[34rem] rounded-full bg-[#4f46e5]/[0.07] blur-[130px]" />
-      {/* brasa quente no rodapé: só um respiro de temperatura no canto oposto */}
-      <div className="absolute -bottom-40 -left-20 h-[26rem] w-[26rem] rounded-full bg-sun-500/[0.06] blur-[110px]" />
-
-      {/* textura de pontos: tira o "liso digital" do degradê sem virar ruído */}
+    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black">
+      {/* grade técnica — o traço que as três referências têm e nós não tínhamos */}
       <div
-        className="absolute inset-0 opacity-[0.07]"
+        className="absolute inset-0 opacity-[0.35]"
         style={{
-          backgroundImage: "radial-gradient(circle, #a5a0ff 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+      {/* grade fina por dentro de cada célula, bem mais fraca — dá densidade
+          sem virar ruído visual */}
+      <div
+        className="absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
         }}
       />
 
-      {/* vinheta: fecha as bordas e empurra o olho pro conteúdo */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_20%_0%,transparent_35%,rgba(0,0,0,0.75)_100%)]" />
+      {/* bloom único, concentrado no canto — não um borrão cobrindo a tela */}
+      <div className="absolute -left-32 -top-32 h-[38rem] w-[38rem] rounded-full bg-[#6c63ff]/[0.28] blur-[100px]" />
+      <div className="absolute -left-10 -top-10 h-64 w-64 rounded-full bg-[#8f88ff]/[0.35] blur-[70px]" />
+
+      {/* a grade só existe onde a luz alcança: fora do bloom ela desaparece
+          no preto, exatamente como grid-sobre-preto costuma ler */}
+      <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_8%_0%,transparent_0%,black_75%)]" />
     </div>
   );
 }
