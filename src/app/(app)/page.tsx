@@ -3,6 +3,7 @@ import Link from "next/link";
 import MinePanel from "@/components/MinePanel";
 import ModelButton from "@/components/ModelButton";
 import AdFilters from "@/components/AdFilters";
+import LazyThumb from "@/components/LazyThumb";
 import { db } from "@/lib/db";
 import { scaleLabel } from "@/lib/scale-score";
 import { card, cardHover, linkGhost, pill, pillFloating } from "@/lib/ui";
@@ -151,12 +152,11 @@ export default async function Home({ searchParams }: Props) {
               <div key={ad.id} className={`group flex flex-col overflow-hidden ${card} ${cardHover}`}>
                 <Link href={`/ads/${ad.id}`} className="relative flex aspect-video items-center justify-center bg-ink-700">
                   {thumb ? (
-                    thumb.kind === "video" ? (
-                      <video src={`/api/media/${thumb.localPath!.replaceAll("\\", "/")}`} className="h-full w-full object-cover" muted preload="metadata" />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={`/api/media/${thumb.localPath!.replaceAll("\\", "/")}`} alt="" className="h-full w-full object-cover" />
-                    )
+                    <LazyThumb
+                      src={`/api/media/${thumb.localPath!.replaceAll("\\", "/")}`}
+                      kind={thumb.kind === "video" ? "video" : "image"}
+                      className="h-full w-full"
+                    />
                   ) : (
                     <span className="text-xs text-zinc-600">sem mídia baixada</span>
                   )}
