@@ -7,8 +7,8 @@ export default async function Config() {
   const settings = await getMaskedSettings();
 
   return (
-    <div className="p-8">
-      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Configurações</h1>
+    <div className="px-10 py-9">
+      <h1 className="mb-1 font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Configurações</h1>
       <p className="mb-6 text-[13px] text-zinc-500">
         Chaves de API e comportamento da coleta. Vale para o app e para o worker, sem
         precisar mexer em arquivo nenhum.

@@ -10,6 +10,7 @@ interface Run {
   status: string;
   found: number;
   novos: number;
+  limit: number;
   error?: string | null;
 }
 
@@ -57,20 +58,22 @@ export default function MinePanel() {
     });
     const data = await res.json();
     if (!res.ok) return setError(data.error);
-    setRun({ id: data.runId, query, status: "running", found: 0, novos: 0 });
+    setRun({ id: data.runId, query, status: "running", found: 0, novos: 0, limit });
   }
 
   const busy = run?.status === "running";
 
   return (
-    <div className={`mb-6 ${card} p-5`}>
+    // glow-ring: esta é a caixa mais importante da tela — é daqui que sai
+    // toda mineração — então é ela, e só ela, que carrega o contorno aceso.
+    <div className={`mb-6 ${card} glow-ring p-5`}>
       <div className="mb-1 flex items-center gap-2">
-        <h2 className="text-sm font-medium text-zinc-300">Minerar um nicho</h2>
+        <h2 className="text-sm font-medium text-zinc-200">Minerar um nicho</h2>
         {workerOnline === false && (
           <span className={`${pill} bg-red-500/15 text-red-400`}>worker parado</span>
         )}
       </div>
-      <p className="mb-4 text-xs text-zinc-500">
+      <p className="mb-4 text-xs leading-relaxed text-zinc-400">
         {workerOnline === false ? (
           <>
             A coleta roda no worker. Abra um terminal e rode <code className="text-zinc-300">npm run worker</code>.
@@ -86,7 +89,7 @@ export default function MinePanel() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="ex: emagrecimento, trade esportivo, marcenaria..."
           disabled={busy}
-          className={`min-w-64 flex-1 ${campoInset} placeholder:text-zinc-600 disabled:opacity-50`}
+          className={`min-w-64 flex-1 ${campoInset} placeholder:text-zinc-500 disabled:opacity-50`}
         />
         <select
           value={country}
@@ -114,24 +117,37 @@ export default function MinePanel() {
       </form>
 
       {busy && (
-        <div className="mt-3 flex items-center gap-2 text-xs text-gold-400">
-          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-gold-400" />
-          Coletando &quot;{run.query}&quot;: {run.found} vistos, {run.novos} novos
+        <div className="mt-3">
+          <div className="flex items-center gap-2 text-xs text-gold-400">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-gold-400" />
+            Coletando &quot;{run.query}&quot;: {run.found} vistos, {run.novos} novos
+          </div>
+          {/* Math.max garante uma lasca visível assim que começa, em vez da
+              barra ficar em 0% (parecendo travada) até o primeiro anúncio
+              inédito aparecer — a busca segue vendo repetidos até achar um. */}
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-gold-500 to-gold-300 transition-[width] duration-500 ease-out"
+              style={{ width: `${Math.min(100, Math.max(4, (run.novos / run.limit) * 100))}%` }}
+            />
+          </div>
         </div>
       )}
 
       {run?.status === "done" && (
-        <div className="mt-3 text-xs">
+        <div className="mt-3">
           {run.novos > 0 ? (
-            <span className="text-emerald-400">
-              {run.novos} anúncio(s) novo(s) de {run.found} vistos.{" "}
-              <a href={`/?run=${run.id}`} className="underline">
-                Ver só esta coleta
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <span className="text-emerald-400">
+                {run.novos} anúncio(s) novo(s) de {run.found} vistos.
+              </span>
+              <a href={`/?run=${run.id}`} className={btnPrimary}>
+                Ver esta coleta
               </a>
-            </span>
+            </div>
           ) : (
             // sem isto, "40 coletados" e nenhum card novo na tela parece bug
-            <span className="text-zinc-400">
+            <span className="text-xs text-zinc-400">
               {run.found} anúncios vistos, nenhum inédito: todos já estavam no banco desta
               ou de outra busca. Tente outro termo ou outro país.
             </span>

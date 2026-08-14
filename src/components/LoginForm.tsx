@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { campo, btnPrimary } from "@/lib/ui";
+import Logo from "./Logo";
 
 interface Estado {
   erro?: string;
@@ -29,24 +30,7 @@ export default function LoginForm({ action }: { action: Action }) {
 
       <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-ink-900/80 p-8 backdrop-blur">
         <div className="mb-6 flex items-center gap-2.5">
-          <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
-            <defs>
-              <linearGradient id="login-logo" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#8f88ff" />
-                <stop offset="1" stopColor="#5b4fe0" />
-              </linearGradient>
-            </defs>
-            <rect x="1" y="1" width="30" height="30" rx="8" fill="url(#login-logo)" />
-            <path
-              d="M6.5 21.5l5.5-6.5 4.3 3.8 5.7-8"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="25.5" cy="13" r="1.8" fill="#fff" />
-          </svg>
+          <Logo className="h-8 w-8 shrink-0" />
           <span className="bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-xl font-semibold text-transparent">
             Super Scraper
           </span>

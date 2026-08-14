@@ -45,7 +45,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const escala = ad ? scaleLabel(ad.scaleScore) : null;
 
   return (
-    <div className="p-8">
+    <div className="px-10 py-9">
       <Link
         href="/projetos"
         className="mb-4 inline-block text-sm text-zinc-500 transition duration-200 ease-spring hover:text-gold-400"
@@ -54,7 +54,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       </Link>
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
-        <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">{project.title}</h1>
+        <h1 className="font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">{project.title}</h1>
         <ProjectStatus id={project.id} status={project.status} />
       </div>
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { historico, type Movimento } from "@/lib/history";
-import { pill } from "@/lib/ui";
+import { card, cardHover, pageTitle, pill } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -18,30 +18,40 @@ export default async function Historico({
   const h = await historico(days);
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Histórico</h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            {h.comparaveis} de {h.total} anúncios com mais de uma coleta no período
-          </p>
+    <div className="px-10 py-9">
+      <header className="mb-10">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="eyebrow mb-3">Movimento do mercado</p>
+            <h1 className={pageTitle}>Histórico</h1>
+            <p className="mt-2.5 max-w-xl text-[13px] leading-relaxed text-zinc-400">
+              <span className="num text-zinc-300">{h.comparaveis}</span> de{" "}
+              <span className="num text-zinc-300">{h.total}</span> anúncios com mais de uma
+              coleta no período — só esses dá pra comparar no tempo.
+            </p>
+          </div>
+
+          {/* segmentado: um trilho só, com a pílula acesa deslizando dentro —
+              em vez de quatro botões soltos todos com o mesmo peso */}
+          <div className="flex items-center gap-0.5 rounded-full border border-white/[0.07] bg-white/[0.03] p-1">
+            {PERIODOS.map((d) => (
+              <Link
+                key={d}
+                href={`/historico?dias=${d}`}
+                className={`num rounded-full px-3.5 py-1.5 text-xs transition duration-200 ease-spring active:scale-[0.97] ${
+                  days === d
+                    ? "bg-white/[0.09] text-zinc-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+                    : "text-zinc-400 hover:text-zinc-100"
+                }`}
+              >
+                {d}d
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-1">
-          {PERIODOS.map((d) => (
-            <Link
-              key={d}
-              href={`/historico?dias=${d}`}
-              className={`rounded-xl px-3 py-1.5 text-sm transition duration-200 ease-spring active:scale-[0.97] ${
-                days === d
-                  ? "bg-white/10 text-zinc-100"
-                  : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
-              }`}
-            >
-              {d} dias
-            </Link>
-          ))}
-        </div>
-      </div>
+
+        <div className="hairline mt-8" />
+      </header>
 
       {h.comparaveis === 0 && (
         <p className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
@@ -50,7 +60,7 @@ export default async function Historico({
         </p>
       )}
 
-      <div className="space-y-8">
+      <div className="space-y-14">
         <Secao
           titulo="Escalando agora"
           explica="ganharam variações desde a primeira coleta, e o anunciante só produz variação do que vende"
@@ -86,15 +96,40 @@ export default async function Historico({
   );
 }
 
-const TONS: Record<
-  "up" | "down" | "dead" | "price" | "new",
-  { icone: string; chip: string; borda: string }
-> = {
-  up: { icone: "📈", chip: "bg-emerald-500/15 text-emerald-400", borda: "hover:border-emerald-500/40" },
-  down: { icone: "📉", chip: "bg-orange-500/15 text-orange-400", borda: "hover:border-orange-500/40" },
-  dead: { icone: "💀", chip: "bg-white/5 text-zinc-400", borda: "hover:border-white/20" },
-  price: { icone: "💰", chip: "bg-gold-500/15 text-gold-400", borda: "hover:border-gold-500/40" },
-  new: { icone: "✨", chip: "bg-blue-500/15 text-blue-400", borda: "hover:border-blue-500/40" },
+type Tom = "up" | "down" | "dead" | "price" | "new";
+
+/**
+ * Cada seção tem UMA cor, e ela aparece em pouca coisa: o ponto aceso do
+ * título e o número do delta no card. Antes a cor vinha em chip de fundo,
+ * borda e ícone ao mesmo tempo, e cinco seções assim deixavam a tela sem
+ * nenhum ponto de foco.
+ */
+const TONS: Record<Tom, { ponto: string; texto: string; hover: string }> = {
+  up: {
+    ponto: "bg-emerald-400 shadow-[0_0_12px_2px_rgba(52,211,153,0.55)]",
+    texto: "text-emerald-400",
+    hover: "hover:border-emerald-400/25",
+  },
+  down: {
+    ponto: "bg-orange-400 shadow-[0_0_12px_2px_rgba(251,146,60,0.5)]",
+    texto: "text-orange-400",
+    hover: "hover:border-orange-400/25",
+  },
+  dead: {
+    ponto: "bg-zinc-600",
+    texto: "text-zinc-400",
+    hover: "hover:border-white/15",
+  },
+  price: {
+    ponto: "bg-sun-400 shadow-[0_0_12px_2px_rgba(232,194,100,0.5)]",
+    texto: "text-sun-300",
+    hover: "hover:border-sun-400/25",
+  },
+  new: {
+    ponto: "bg-gold-400 shadow-[0_0_12px_2px_rgba(143,136,255,0.55)]",
+    texto: "text-gold-300",
+    hover: "hover:border-gold-400/25",
+  },
 };
 
 function Secao({
@@ -106,80 +141,98 @@ function Secao({
   titulo: string;
   explica: string;
   itens: Movimento[];
-  tom: "up" | "down" | "dead" | "price" | "new";
+  tom: Tom;
 }) {
   if (!itens.length) return null;
   const t = TONS[tom];
 
   return (
     <section>
-      <div className="mb-1 flex items-center gap-2">
-        <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm ${t.chip}`}>
-          {t.icone}
-        </span>
-        <h2 className="text-sm font-semibold text-zinc-100">{titulo}</h2>
-        <span className={`${pill} font-medium tabular-nums ${t.chip}`}>
-          {itens.length}
-        </span>
+      <div className="mb-5">
+        <div className="flex items-baseline gap-3">
+          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${t.ponto}`} />
+          <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-zinc-100">
+            {titulo}
+          </h2>
+          <span className="num text-xs text-zinc-400">
+            {String(itens.length).padStart(2, "0")}
+          </span>
+          <div className="hairline ml-2 hidden flex-1 sm:block" />
+        </div>
+        <p className="mt-1.5 pl-[18px] text-xs leading-relaxed text-zinc-400">{explica}</p>
       </div>
-      <p className="mb-3 pl-9 text-xs text-zinc-600">{explica}</p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-        {itens.map((m) => (
+        {itens.map((m, i) => (
           <Link
             key={m.adId}
             href={`/ads/${m.adId}`}
-            className={`flex gap-3 rounded-2xl border border-white/5 bg-gradient-to-b from-ink-700/60 to-ink-800 p-3 transition duration-200 ease-spring hover:-translate-y-0.5 hover:shadow-apple ${t.borda}`}
+            style={{ animationDelay: `${Math.min(i, 11) * 40}ms` }}
+            className={`group flex animate-rise gap-3.5 p-3 ${card} ${cardHover} ${t.hover}`}
           >
             {m.thumb ? (
               m.thumb.endsWith(".mp4") ? (
-                <video src={media(m.thumb)} className="h-20 w-20 shrink-0 rounded-xl object-cover" muted />
+                <video
+                  src={media(m.thumb)}
+                  className="h-[72px] w-[72px] shrink-0 rounded-xl object-cover ring-1 ring-white/10"
+                  muted
+                  preload="metadata"
+                />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={media(m.thumb)} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" />
+                <img
+                  src={media(m.thumb)}
+                  alt=""
+                  loading="lazy"
+                  className="h-[72px] w-[72px] shrink-0 rounded-xl object-cover ring-1 ring-white/10"
+                />
               )
             ) : (
-              <div className="h-20 w-20 shrink-0 rounded-xl bg-ink-700" />
+              <div className="h-[72px] w-[72px] shrink-0 rounded-xl bg-white/[0.03] ring-1 ring-white/[0.06]" />
             )}
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 truncate text-xs text-zinc-500">
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-center gap-1.5 truncate text-[11px] text-zinc-400">
                 <span className="truncate">{m.advertiser}</span>
                 {m.outrosComEssaOferta > 0 && (
-                  <span className={`${pill} shrink-0 bg-white/5 text-[10px] text-zinc-500`}>
-                    +{m.outrosComEssaOferta} variações
+                  <span className={`${pill} num shrink-0 bg-white/[0.06] text-[10px] text-zinc-400`}>
+                    +{m.outrosComEssaOferta}
                   </span>
                 )}
               </div>
-              <div className="line-clamp-2 text-sm text-zinc-200">
+
+              <div className="mt-0.5 line-clamp-2 text-[13px] font-medium leading-snug text-zinc-200 transition group-hover:text-white">
                 {m.headline ?? "(sem headline)"}
               </div>
 
-              <div className="mt-1 text-xs">
+              <div className={`num mt-auto pt-1.5 text-xs ${t.texto}`}>
                 {tom === "up" && (
-                  <span className="text-emerald-400">
-                    {m.variantesAntes} → {m.variantesAgora} variações (+{m.delta})
-                  </span>
+                  <>
+                    {m.variantesAntes} → {m.variantesAgora}{" "}
+                    <span className="text-zinc-400">var</span> +{m.delta}
+                  </>
                 )}
                 {tom === "down" && (
-                  <span className="text-orange-400">
-                    {m.variantesAntes} → {m.variantesAgora} variações ({m.delta})
-                  </span>
+                  <>
+                    {m.variantesAntes} → {m.variantesAgora}{" "}
+                    <span className="text-zinc-400">var</span> {m.delta}
+                  </>
                 )}
                 {tom === "dead" && (
-                  <span className="text-zinc-500">
-                    inativo · chegou a {m.variantesAgora} variações
-                  </span>
+                  <>
+                    inativo <span className="text-zinc-400">· pico</span> {m.variantesAgora}
+                  </>
                 )}
                 {tom === "price" && (
-                  <span className="text-gold-400">
+                  <>
                     {m.precoAntes} → {m.precoAgora}
-                  </span>
+                  </>
                 )}
                 {tom === "new" && (
-                  <span className="text-zinc-500">
-                    escala {m.scaleScore} · {m.variantesAgora} variações
-                  </span>
+                  <>
+                    escala {m.scaleScore} <span className="text-zinc-400">·</span>{" "}
+                    {m.variantesAgora} <span className="text-zinc-400">var</span>
+                  </>
                 )}
               </div>
             </div>

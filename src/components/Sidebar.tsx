@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 
 /** Ícones em traço, no mesmo peso do raio da marca. */
 const ICONS: Record<string, React.ReactNode> = {
@@ -18,11 +19,6 @@ const ICONS: Record<string, React.ReactNode> = {
     <>
       <path d="M11 3.5 12.6 8l4.5 1.6-4.5 1.6L11 15.7 9.4 11.2 4.9 9.6 9.4 8 11 3.5Z" />
       <path d="M18 14.5 18.8 17l2.5.9-2.5.9-.8 2.5-.9-2.5-2.5-.9 2.5-.9.9-2.5Z" />
-    </>
-  ),
-  traqueamento: (
-    <>
-      <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
     </>
   ),
   funis: (
@@ -70,9 +66,8 @@ const ICONS: Record<string, React.ReactNode> = {
 };
 
 // Ordem pensada como um funil de uso: minerar -> ver quem escala -> produzir
-// -> mapear destino -> clonar -> acompanhar o próprio resultado. Traqueamento
-// e Meu Perfil ficam perto, porque o traqueamento é sobre o SEU faturamento,
-// não o de outra pessoa. Configurações sempre por último.
+// -> mapear destino -> clonar -> acompanhar o próprio resultado.
+// Configurações sempre por último.
 const NAV = [
   { href: "/", icon: "banco", label: "Banco de Anúncios", hint: "minerar e filtrar" },
   { href: "/historico", icon: "historico", label: "Histórico", hint: "quem está escalando" },
@@ -81,7 +76,6 @@ const NAV = [
   { href: "/funil-hacking", icon: "hacking", label: "Funil Hacking", hint: "faturamento estimado" },
   { href: "/analise-ofertas", icon: "analise", label: "Análise de Ofertas", hint: "subindo ou caindo" },
   { href: "/clones", icon: "clones", label: "Páginas Clonadas", hint: "clonar e hospedar" },
-  { href: "/traqueamento", icon: "traqueamento", label: "Traqueamento", hint: "suas vendas e ROI" },
   { href: "/perfil", icon: "perfil", label: "Meu Perfil", hint: "conta e conquistas" },
   { href: "/config", icon: "config", label: "Configurações", hint: "chaves e coleta" },
 ];
@@ -90,56 +84,24 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    // O aside estica na altura toda da página (flex stretch), e a decoração
-    // fica num wrapper com overflow próprio. Colocar overflow-hidden direto no
-    // aside quebrava o sticky do miolo e fazia o degradê vazar por cima do
-    // conteúdo, escondendo a página inteira atrás do azul.
+    // O fundo (degradê, brilhos, pontos) agora é um único componente global
+    // (AppBackground, no layout) atrás de sidebar + cabeçalho + conteúdo.
+    // Antes vivia só aqui dentro (256px) e o resto da página era preto
+    // chapado — dava uma emenda dura bem no topo, atrás do cabeçalho. A
+    // aside só entra com a borda direita, que separa o menu do conteúdo.
     <aside className="relative w-64 shrink-0 border-r border-white/5">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* degradê azul-noite com brilho violeta, no clima de dashboard de exchange */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#191645] via-[#100f2b] to-[#07070f]" />
-        <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-[#4f46e5]/25 blur-3xl" />
-        <div className="absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-gold-500/20 blur-3xl" />
-        {/* textura de pontos, como no cartão do plano */}
-        <div
-          className="absolute inset-0 opacity-[0.14]"
-          style={{
-            backgroundImage: "radial-gradient(circle, #a5a0ff 1px, transparent 1px)",
-            backgroundSize: "18px 18px",
-          }}
-        />
-        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-gold-500/25 to-transparent" />
-      </div>
-
       {/* sticky: o menu acompanha a rolagem em vez de sumir com a página */}
       <div className="fade-scroll sticky top-0 flex h-screen flex-col overflow-y-auto p-4">
         <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
-          {/* selo violeta com linha de pulso: a marca é "acompanhar o mercado",
-              e o gráfico subindo diz isso melhor que o raio antigo */}
-          <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
-            <defs>
-              <linearGradient id="logo-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#8f88ff" />
-                <stop offset="1" stopColor="#5b4fe0" />
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#logo-grad)" />
-            <path
-              d="M7 21l5-6 4 3.5L21.5 11l3.5 4"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="25" cy="15" r="1.6" fill="#fff" />
-          </svg>
+          <Logo className="h-8 w-8 shrink-0" />
           <span className="bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-lg font-semibold tracking-tight text-transparent">
             Super Scraper
           </span>
         </div>
 
-        <nav className="flex-1 space-y-1.5">
+        {/* itens maiores + mais espaçados: só 9 links num painel que estica até
+            o fim da tela sobrava muito vazio embaixo com o tamanho antigo */}
+        <nav className="flex-1 space-y-2.5">
           {NAV.map((item) => {
             const active =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -147,17 +109,17 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-3 transition duration-200 ease-spring active:scale-[0.98] ${
+                className={`group flex items-center gap-3.5 rounded-xl px-3.5 py-3.5 transition duration-200 ease-spring active:scale-[0.98] ${
                   active
                     ? "bg-gradient-to-r from-sun-500/25 to-transparent ring-1 ring-sun-400/40"
-                    : "hover:bg-white/5"
+                    : "hover:bg-white/[0.07]"
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 ease-spring ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition duration-200 ease-spring ${
                     active
                       ? "bg-sun-400 text-ink-900 shadow-[0_0_14px_rgba(232,194,100,0.35)]"
-                      : "bg-white/5 text-zinc-400 group-hover:text-zinc-200"
+                      : "bg-white/[0.08] text-zinc-200 group-hover:text-white"
                   }`}
                 >
                   <svg
@@ -167,7 +129,7 @@ export default function Sidebar() {
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-[18px] w-[18px]"
+                    className="h-5 w-5"
                     aria-hidden
                   >
                     {ICONS[item.icon]}
@@ -176,12 +138,12 @@ export default function Sidebar() {
                 <span className="min-w-0">
                   <span
                     className={`block truncate text-sm font-medium ${
-                      active ? "text-sun-300" : "text-zinc-200"
+                      active ? "text-sun-300" : "text-zinc-100"
                     }`}
                   >
                     {item.label}
                   </span>
-                  <span className="block truncate text-[11px] text-zinc-500">{item.hint}</span>
+                  <span className="block truncate text-xs text-zinc-400">{item.hint}</span>
                 </span>
               </Link>
             );

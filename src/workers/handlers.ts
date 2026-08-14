@@ -6,6 +6,7 @@ import { chat } from "../lib/llm.js";
 import { enqueue } from "../lib/ingest.js";
 import { classifyInfoproduct } from "../lib/infoproduct.js";
 import { getSetting } from "../lib/settings.js";
+import { mapLimit } from "../lib/concurrency.js";
 
 // -------------------------------------------------------------- mine
 /**
@@ -66,7 +67,9 @@ export async function handleMedia(payload: { adId: string }) {
 
   const falhas: string[] = [];
 
-  for (const c of creatives) {
+  // Downloads são I/O de rede, não CPU: baixar 4 por vez em vez de um a um
+  // encurta bastante o tempo até o anúncio ter mídia pronta pra aparecer.
+  await mapLimit(creatives, 4, async (c) => {
     const ext = c.kind === "video" ? "mp4" : "jpg";
     try {
       const { localPath, bytes } = await download(c.sourceUrl, "creatives", payload.adId, `${c.id}.${ext}`);
@@ -81,7 +84,7 @@ export async function handleMedia(payload: { adId: string }) {
       if (gemeo) {
         fs.rmSync(absolute(localPath), { force: true });
         await db.creative.delete({ where: { id: c.id } });
-        continue;
+        return;
       }
 
       await db.creative.update({
@@ -103,7 +106,7 @@ export async function handleMedia(payload: { adId: string }) {
       falhas.push(`${c.id}: ${msg}`);
       console.warn(`  media: falhou ${c.id}: ${msg}`);
     }
-  }
+  });
 
   if (falhas.length) {
     throw new Error(`${falhas.length} criativo(s) não baixaram: ${falhas.slice(0, 3).join(" | ")}`);

@@ -89,7 +89,7 @@ export default function AdFilters({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
           aria-hidden
         >
           <circle cx="11" cy="11" r="7" />
@@ -141,7 +141,7 @@ export default function AdFilters({
 
       {ativos.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-xs text-zinc-500">Filtros:</span>
+          <span className="text-xs text-zinc-400">Filtros:</span>
           {ativos.map((a) => (
             <button
               key={a.key}
@@ -174,7 +174,7 @@ function Campo({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+      <span className="eyebrow mb-1.5 block">
         {label}
       </span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className={campo}>

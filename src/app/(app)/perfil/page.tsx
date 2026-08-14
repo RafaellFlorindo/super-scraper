@@ -9,17 +9,16 @@ import { card } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
-const brl = (c: number) =>
-  (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const numero = (n: number) => n.toLocaleString("pt-BR");
 
 export default async function Perfil() {
   const sessionUser = await currentUser();
   if (!sessionUser) redirect("/api/auto-login");
 
-  const [user, achievements, vendas] = await Promise.all([
+  const [user, achievements, coletas] = await Promise.all([
     db.user.findUnique({ where: { id: sessionUser.id } }),
     computeAchievements(),
-    db.sale.count({ where: { status: "paid" } }),
+    db.miningRun.count({ where: { status: "done" } }),
   ]);
   if (!user) redirect("/api/auto-login");
 
@@ -29,8 +28,8 @@ export default async function Perfil() {
   });
 
   return (
-    <div className="p-8">
-      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Meu Perfil</h1>
+    <div className="px-10 py-9">
+      <h1 className="mb-1 font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Meu Perfil</h1>
       <p className="mb-6 text-[13px] text-zinc-500">Sua conta e o seu caminho de vitórias.</p>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
@@ -57,8 +56,8 @@ export default async function Perfil() {
         <div className="flex flex-col gap-6">
           {/* resumo rápido no topo, estilo Kiwify */}
           <div className="grid grid-cols-3 gap-3">
-            <Resumo label="Faturamento vitalício" valor={brl(achievements.totalCents)} destaque />
-            <Resumo label="Vendas pagas" valor={String(vendas)} />
+            <Resumo label="Anúncios minerados" valor={numero(achievements.total)} destaque />
+            <Resumo label="Coletas realizadas" valor={numero(coletas)} />
             <Resumo label="Membro desde" valor={membro} />
           </div>
 
@@ -66,7 +65,7 @@ export default async function Perfil() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🏆</span>
-                <h2 className="text-sm font-medium text-zinc-100">Caminho de vitórias</h2>
+                <h2 className="text-sm font-medium text-zinc-100">Caminho de mineração</h2>
               </div>
               {achievements.next && (
                 <span className="text-xs text-zinc-500">
@@ -113,12 +112,12 @@ export default async function Perfil() {
                           </div>
                           <div className="mt-1 text-[11px] text-zinc-500">
                             {achievements.progressPct.toFixed(1)}% —{" "}
-                            {brl(Math.max(0, m.amountCents - achievements.totalCents))} para chegar
+                            {numero(Math.max(0, m.count - achievements.total))} anúncios para chegar
                           </div>
                         </div>
                       ) : (
                         <div className="text-xs text-zinc-600">
-                          {brl(Math.max(0, m.amountCents - achievements.totalCents))} para chegar
+                          {numero(Math.max(0, m.count - achievements.total))} anúncios para chegar
                         </div>
                       )}
                     </div>
@@ -128,7 +127,7 @@ export default async function Perfil() {
             </div>
 
             <p className="mt-auto pt-4 text-[11px] text-zinc-600">
-              Calculado a partir das vendas pagas no Traqueamento, menos reembolso e chargeback.
+              Calculado a partir do total de anúncios já minerados no Banco de Anúncios.
             </p>
           </div>
         </div>
@@ -139,15 +138,13 @@ export default async function Perfil() {
 
 function Resumo({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
   return (
-    <div
-      className={`rounded-2xl border p-4 ${
-        destaque
-          ? "border-gold-500/20 bg-gradient-to-br from-gold-500/10 to-ink-800"
-          : "border-white/5 bg-ink-800"
-      }`}
-    >
-      <div className="text-[11px] uppercase tracking-wide text-zinc-500">{label}</div>
-      <div className={`mt-1 truncate text-lg font-semibold ${destaque ? "text-gold-300" : "text-zinc-100"}`}>
+    <div className={`p-4 ${card} ${destaque ? "!border-gold-500/25" : ""}`}>
+      <div className="eyebrow">{label}</div>
+      <div
+        className={`num mt-1.5 truncate text-2xl font-semibold tracking-tight ${
+          destaque ? "text-gold-200" : "text-zinc-50"
+        }`}
+      >
         {valor}
       </div>
     </div>

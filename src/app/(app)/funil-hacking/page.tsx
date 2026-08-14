@@ -29,9 +29,9 @@ export default async function FunilHacking({
   const comPreco = ofertas.filter((o) => o.price);
 
   return (
-    <div className="p-8">
+    <div className="px-10 py-9">
       <div className="mb-1 flex items-center gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Funil Hacking</h1>
+        <h1 className="font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Funil Hacking</h1>
         <span className={`${pill} bg-gold-500/15 uppercase tracking-wide text-gold-400`}>
           estimativa
         </span>

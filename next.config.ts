@@ -11,6 +11,13 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   serverExternalPackages: ["ffmpeg-static", "playwright", "playwright-core"],
+  /**
+   * `next build` e `next dev` compartilhando o mesmo `.next` se atropelam: o
+   * build apaga chunks que o dev ainda está servindo e a página cai com
+   * "Cannot find module for page". Com NEXT_DIST_DIR dá pra buildar num
+   * diretório separado sem derrubar o servidor de desenvolvimento.
+   */
+  distDir: process.env.NEXT_DIST_DIR || ".next",
 };
 
 export default nextConfig;
