@@ -21,9 +21,9 @@ export default function AchievementsWidget({ data }: { data: Achievements }) {
     >
       <MedalIcon tier={alvo.tier} achieved={Boolean(alvo.achievedAt)} size={22} />
       <div className="flex flex-col items-start leading-tight">
-        <span className="text-[11px] font-medium text-zinc-200">
+        <span className="num text-[11px] font-medium text-zinc-100">
           {compacto(data.total)}
-          <span className="text-zinc-600"> / {compacto(alvo.count)}</span>
+          <span className="text-zinc-400"> / {compacto(alvo.count)}</span>
         </span>
         <div className="h-1 w-20 overflow-hidden rounded-full bg-white/10">
           <div

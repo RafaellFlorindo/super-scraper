@@ -30,10 +30,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* barra fina para o caminho de vitórias e o menu do usuário, fixa no topo */}
-        <header className="sticky top-0 z-40 flex items-center justify-end gap-3 border-b border-white/5 bg-ink-900/70 px-8 py-3 backdrop-blur-xl backdrop-saturate-150">
+        {/* Barra do caminho de vitórias e do menu do usuário.
+            Sem fill próprio: só blur + um fio que some nas pontas. Um fundo
+            sólido aqui criava uma emenda dura bem em cima do bloom violeta. */}
+        <header className="sticky top-0 z-40 flex items-center justify-end gap-3 px-8 py-3.5 backdrop-blur-xl backdrop-saturate-150">
           <AchievementsWidget data={achievements} />
           <UserMenu user={user} />
+          <div className="hairline absolute inset-x-0 bottom-0" />
         </header>
 
         <main className="flex-1 overflow-x-hidden">{children}</main>

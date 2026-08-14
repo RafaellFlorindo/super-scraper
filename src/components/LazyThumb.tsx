@@ -38,7 +38,11 @@ export default function LazyThumb({
   }, []);
 
   return (
-    <div ref={ref} className={className}>
+    // `absolute inset-0`: a mídia é criativo de anúncio, quase sempre vertical
+    // (9:16). Em fluxo normal a altura intrínseca do vídeo estourava o
+    // `aspect-video` do container — cada card ficava com uma altura diferente
+    // e a grade virava uma escada. Fora do fluxo, quem manda é o container.
+    <div ref={ref} className={`absolute inset-0 ${className ?? ""}`}>
       {visible &&
         (kind === "video" ? (
           <video src={src} className="h-full w-full object-cover" muted preload="metadata" />

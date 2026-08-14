@@ -28,8 +28,8 @@ export default async function Perfil() {
   });
 
   return (
-    <div className="p-8">
-      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Meu Perfil</h1>
+    <div className="px-10 py-9">
+      <h1 className="mb-1 font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Meu Perfil</h1>
       <p className="mb-6 text-[13px] text-zinc-500">Sua conta e o seu caminho de vitórias.</p>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
@@ -138,15 +138,13 @@ export default async function Perfil() {
 
 function Resumo({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
   return (
-    <div
-      className={`rounded-2xl border p-4 ${
-        destaque
-          ? "border-gold-500/20 bg-gradient-to-br from-gold-500/10 to-ink-800"
-          : "border-white/5 bg-ink-800"
-      }`}
-    >
-      <div className="text-[11px] uppercase tracking-wide text-zinc-500">{label}</div>
-      <div className={`mt-1 truncate text-lg font-semibold ${destaque ? "text-gold-300" : "text-zinc-100"}`}>
+    <div className={`p-4 ${card} ${destaque ? "!border-gold-500/25" : ""}`}>
+      <div className="eyebrow">{label}</div>
+      <div
+        className={`num mt-1.5 truncate text-2xl font-semibold tracking-tight ${
+          destaque ? "text-gold-200" : "text-zinc-50"
+        }`}
+      >
         {valor}
       </div>
     </div>

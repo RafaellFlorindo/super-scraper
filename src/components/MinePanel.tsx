@@ -71,7 +71,7 @@ export default function MinePanel() {
           <span className={`${pill} bg-red-500/15 text-red-400`}>worker parado</span>
         )}
       </div>
-      <p className="mb-4 text-xs text-zinc-500">
+      <p className="mb-4 text-xs leading-relaxed text-zinc-400">
         {workerOnline === false ? (
           <>
             A coleta roda no worker. Abra um terminal e rode <code className="text-zinc-300">npm run worker</code>.
@@ -87,7 +87,7 @@ export default function MinePanel() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="ex: emagrecimento, trade esportivo, marcenaria..."
           disabled={busy}
-          className={`min-w-64 flex-1 ${campoInset} placeholder:text-zinc-600 disabled:opacity-50`}
+          className={`min-w-64 flex-1 ${campoInset} placeholder:text-zinc-500 disabled:opacity-50`}
         />
         <select
           value={country}

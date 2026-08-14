@@ -6,7 +6,7 @@ import AdFilters from "@/components/AdFilters";
 import LazyThumb from "@/components/LazyThumb";
 import { db } from "@/lib/db";
 import { scaleLabel } from "@/lib/scale-score";
-import { card, cardHover, linkGhost, pill, pillFloating } from "@/lib/ui";
+import { card, cardHover, linkGhost, pageTitle, pill, pillFloating } from "@/lib/ui";
 import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -79,42 +79,49 @@ export default async function Home({ searchParams }: Props) {
   const runAtual = runFiltro ? runs.find((r) => r.id === runFiltro) : null;
 
   return (
-    <div className="p-8">
-      <div className="relative mb-6">
-        <div
-          className="pointer-events-none absolute -left-10 -top-20 -z-10 h-72 w-72 rounded-full bg-[#5b4fe0]/25 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -top-10 left-32 -z-10 h-56 w-56 rounded-full bg-sun-500/15 blur-3xl"
-          aria-hidden
-        />
-        <header className="flex items-end justify-between">
-          <div>
-            <h1 className="bg-gradient-to-r from-zinc-50 to-gold-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
-              Banco de Anúncios
-            </h1>
-            <p className="mt-1.5 text-[13px] text-zinc-500">
-              {infoTotal} infoprodutos/SaaS de {total} anúncios minerados ·{" "}
-              {runFiltro ? "ordenados por mais recente" : "ordenados por score de escala"}
-              {aguardandoMidia > 0 && (
-                <>
-                  {" "}
-                  · <span className="text-gold-400">{aguardandoMidia} aguardando mídia baixar</span>
-                </>
-              )}
-            </p>
-          </div>
-        </header>
-      </div>
+    <div className="px-10 py-9">
+      <header className="mb-8">
+        <p className="eyebrow mb-3">Biblioteca de anúncios · Meta</p>
+        <h1 className={pageTitle}>Banco de Anúncios</h1>
+
+        {/* números soltos na linha, separados por fio vertical: lê como painel
+            de terminal, e não como mais três caixas iguais na tela */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+          <span className="text-zinc-400">
+            <span className="num text-base text-zinc-50">{infoTotal}</span>{" "}
+            <span className="text-zinc-400">infoprodutos/SaaS</span>
+          </span>
+          <span className="h-3 w-px bg-white/10" />
+          <span className="text-zinc-400">
+            <span className="num text-base text-zinc-50">{total}</span>{" "}
+            <span className="text-zinc-400">minerados</span>
+          </span>
+          <span className="h-3 w-px bg-white/10" />
+          <span className="text-zinc-400">
+            {runFiltro ? "ordem: mais recente" : "ordem: score de escala"}
+          </span>
+          {aguardandoMidia > 0 && (
+            <>
+              <span className="h-3 w-px bg-white/10" />
+              <span className="flex items-center gap-1.5 text-gold-300">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-gold-400 shadow-[0_0_10px_2px_rgba(143,136,255,0.6)]" />
+                <span className="num">{aguardandoMidia}</span> aguardando mídia
+              </span>
+            </>
+          )}
+        </div>
+
+        <div className="hairline mt-7" />
+      </header>
 
       <MinePanel />
 
       {runAtual && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-gold-500/30 bg-gold-500/5 px-4 py-2.5 text-sm">
-          <span className="text-gold-400">
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-gold-500/25 bg-gold-500/[0.07] px-4 py-2.5 text-sm">
+          <span className="flex items-center gap-2 text-gold-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-gold-400 shadow-[0_0_10px_2px_rgba(143,136,255,0.6)]" />
             Mostrando a coleta &quot;{runAtual.query}&quot; ({runAtual.country}) ·{" "}
-            {runAtual.novos} anúncios novos
+            <span className="num">{runAtual.novos}</span> anúncios novos
           </span>
           <Link href="/" className={`ml-auto ${linkGhost}`}>
             limpar filtro de coleta
@@ -122,7 +129,7 @@ export default async function Home({ searchParams }: Props) {
         </div>
       )}
 
-      <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.05] p-4 shadow-apple backdrop-blur-xl">
+      <div className={`mb-8 p-4 ${card}`}>
         <Suspense fallback={<div className="h-12" />}>
           <AdFilters
             niches={niches.map((n) => ({ value: n.niche!, label: `${n.niche} (${n._count})` }))}
@@ -145,58 +152,87 @@ export default async function Home({ searchParams }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-          {ads.map((ad) => {
+          {ads.map((ad, i) => {
             const { label, tone } = scaleLabel(ad.scaleScore);
             const thumb = ad.creatives.find((c) => c.localPath);
+            const novo = Date.now() - ad.createdAt.getTime() < JANELA_NOVO;
             return (
-              <div key={ad.id} className={`group flex flex-col overflow-hidden ${card} ${cardHover}`}>
-                <Link href={`/ads/${ad.id}`} className="relative flex aspect-video items-center justify-center bg-ink-700">
+              <div
+                key={ad.id}
+                style={{ animationDelay: `${Math.min(i, 11) * 45}ms` }}
+                className={`group flex animate-rise flex-col overflow-hidden ${card} ${cardHover}`}
+              >
+                <Link href={`/ads/${ad.id}`} className="relative flex aspect-video items-center justify-center bg-black/40">
                   {thumb ? (
                     <LazyThumb
                       src={`/api/media/${thumb.localPath!.replaceAll("\\", "/")}`}
                       kind={thumb.kind === "video" ? "video" : "image"}
-                      className="h-full w-full"
                     />
                   ) : (
                     <span className="text-xs text-zinc-600">sem mídia baixada</span>
                   )}
-                  <span className={`absolute left-2 top-2 ${pillFloating}`}>
-                    <span className={tone}>{ad.scaleScore}</span>{" "}
-                    <span className="text-zinc-500">{label}</span>
+
+                  {/* sombra na base da mídia: o texto abaixo não fica "colado"
+                      num corte reto de imagem */}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-ink-800 to-transparent" />
+
+                  {/* score é o número que manda na tela: grande, em mono */}
+                  <span className={`absolute left-2.5 top-2.5 ${pillFloating} flex items-center gap-1.5 py-1`}>
+                    <span className={`num text-[13px] font-semibold leading-none ${tone}`}>
+                      {ad.scaleScore}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider text-zinc-400">{label}</span>
                   </span>
+
                   {ad.variantCount > 1 && (
-                    <span className={`absolute right-2 top-2 ${pillFloating} text-gold-400`}>
-                      {ad.variantCount}x variações
+                    <span className={`absolute right-2.5 top-2.5 ${pillFloating} num text-gold-300`}>
+                      {ad.variantCount}×
                     </span>
                   )}
-                  {Date.now() - ad.createdAt.getTime() < JANELA_NOVO && (
-                    <span className={`absolute bottom-2 left-2 ${pill} bg-emerald-500/90 text-ink-900`}>
+                  {novo && (
+                    <span className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_2px_rgba(52,211,153,0.7)]" />
                       novo
                     </span>
                   )}
                 </Link>
 
                 <div className="flex flex-1 flex-col p-4">
-                  <Link href={`/ads/${ad.id}`} className="mb-1 block truncate text-xs text-zinc-500">
+                  <Link href={`/ads/${ad.id}`} className="mb-1 block truncate text-[11px] text-zinc-400">
                     {ad.advertiser.name}
                   </Link>
                   <Link
                     href={`/ads/${ad.id}`}
-                    className="mb-3 line-clamp-2 text-sm font-medium text-zinc-200 hover:text-gold-400"
+                    className="mb-3 line-clamp-2 text-[13px] font-medium leading-snug text-zinc-100 transition group-hover:text-white"
                   >
                     {ad.headline ?? ad.primaryText ?? "(sem título)"}
                   </Link>
-                  <div className="mb-3 flex flex-wrap gap-1.5">
-                    {ad.isInfoproduct && (
-                      <span className={`${pill} bg-violet-500/15 text-violet-300`}>infoproduto {ad.infoScore}</span>
-                    )}
-                    {ad.niche && <span className={`${pill} bg-white/5 text-zinc-400`}>{ad.niche}</span>}
-                    {ad.format && <span className={`${pill} bg-white/5 text-zinc-400`}>{ad.format}</span>}
+
+                  {/* nicho/formato viram texto corrido separado por ponto —
+                      como pílula, cinco chips de peso igual viravam ruído e
+                      empurravam o preço, que é o dado que importa, pro meio */}
+                  <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[11px] text-zinc-400">
+                    {ad.niche && <span className="truncate">{ad.niche}</span>}
+                    {ad.niche && ad.format && <span className="text-zinc-500">·</span>}
+                    {ad.format && <span>{ad.format}</span>}
                     {ad.funnel?.platform && ad.funnel.platform !== "proprio" && (
-                      <span className={`${pill} bg-gold-500/10 text-gold-400`}>{ad.funnel.platform}</span>
+                      <>
+                        <span className="text-zinc-500">·</span>
+                        <span>{ad.funnel.platform}</span>
+                      </>
                     )}
+                  </div>
+
+                  <div className="mb-3 flex flex-wrap items-center gap-1.5">
                     {ad.funnel?.detectedPrice && (
-                      <span className={`${pill} bg-emerald-500/10 text-emerald-400`}>{ad.funnel.detectedPrice}</span>
+                      <span className={`${pill} num bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/20`}>
+                        {ad.funnel.detectedPrice}
+                      </span>
+                    )}
+                    {ad.isInfoproduct && (
+                      <span className={`${pill} num bg-white/[0.06] text-zinc-400`}>
+                        info {ad.infoScore}
+                      </span>
                     )}
                   </div>
 

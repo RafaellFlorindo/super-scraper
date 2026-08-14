@@ -129,7 +129,7 @@ export default async function HistoricoMetricas({ params }: { params: Promise<{ 
   const sinal = (v: number) => (v > 0 ? `+${v}` : String(v));
 
   return (
-    <div className="p-8">
+    <div className="px-10 py-9">
       <div className="mb-1 text-xs text-zinc-500">
         <Link href="/analise-ofertas" className="transition duration-200 ease-spring hover:text-gold-400">
           Análise de Ofertas
@@ -137,7 +137,7 @@ export default async function HistoricoMetricas({ params }: { params: Promise<{ 
         <span className="mx-1.5 text-zinc-700">/</span>
         <span className="uppercase text-gold-400">{tracked.ad.advertiser.name}</span>
       </div>
-      <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Histórico de Métricas</h1>
+      <h1 className="font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Histórico de Métricas</h1>
       <p className="mb-6 text-[13px] uppercase tracking-wide text-zinc-500">{nome}</p>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">

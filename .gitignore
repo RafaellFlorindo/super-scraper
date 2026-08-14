@@ -1,6 +1,7 @@
 # dependências e build
 node_modules/
 .next/
+.next-build/
 out/
 tsconfig.tsbuildinfo
 next-env.d.ts

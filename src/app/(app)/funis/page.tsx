@@ -57,10 +57,10 @@ export default async function Funis({
   const doDia = await db.funnel.count({ where: { analyzedAt: { gte: hoje } } });
 
   return (
-    <div className="p-8">
+    <div className="px-10 py-9">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[28px] font-semibold tracking-tight text-zinc-100">Mapa de Funis</h1>
+          <h1 className="font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Mapa de Funis</h1>
           <p className="mt-1 text-[13px] text-zinc-500">Para onde cada anúncio manda o clique</p>
         </div>
         <RefreshFunnelsButton minScore={minScore} />

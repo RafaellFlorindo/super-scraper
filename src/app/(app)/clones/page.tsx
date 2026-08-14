@@ -12,8 +12,8 @@ export default async function Clones() {
   const workerOnline = Boolean(beat && Date.now() - beat.beatAt.getTime() < 15_000);
 
   return (
-    <div className="p-8">
-      <h1 className="mb-1 text-[28px] font-semibold tracking-tight text-zinc-100">Páginas Clonadas</h1>
+    <div className="px-10 py-9">
+      <h1 className="mb-1 font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.03em] text-zinc-50">Páginas Clonadas</h1>
       <p className="mb-6 text-[13px] text-zinc-500">
         Clone a página de vendas do concorrente para estudar a estrutura, já sem os
         rastreadores dele.

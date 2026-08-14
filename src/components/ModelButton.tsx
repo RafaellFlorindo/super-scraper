@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { btnAccent } from "@/lib/ui";
 
 /**
  * Leva o anúncio direto para o Estúdio de Agentes já configurado para modelá-lo.
@@ -31,10 +30,13 @@ export default function ModelButton({
   }
 
   return (
+    // Discreto em repouso, dourado só no hover do card: numa grade de 60
+    // anúncios, 60 botões dourados sólidos gritavam todos juntos e nada
+    // sobrava de destaque. O acento fica pro card sob o cursor.
     <button
       onClick={modelar}
       disabled={busy}
-      className={`${btnAccent} ${className}`}
+      className={`h-9 rounded-xl border border-white/10 bg-white/[0.05] text-[13px] font-medium text-zinc-300 transition duration-200 ease-spring group-hover:border-sun-400/50 group-hover:bg-sun-400/10 group-hover:text-sun-200 hover:!bg-sun-400 hover:!text-ink-900 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 ${className}`}
     >
       {busy ? "Abrindo estúdio..." : "Modelar esta oferta"}
     </button>
