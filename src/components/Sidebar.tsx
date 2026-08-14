@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 
 /** Ícones em traço, no mesmo peso do raio da marca. */
 const ICONS: Record<string, React.ReactNode> = {
@@ -112,26 +113,7 @@ export default function Sidebar() {
       {/* sticky: o menu acompanha a rolagem em vez de sumir com a página */}
       <div className="fade-scroll sticky top-0 flex h-screen flex-col overflow-y-auto p-4">
         <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
-          {/* selo violeta com linha de pulso: a marca é "acompanhar o mercado",
-              e o gráfico subindo diz isso melhor que o raio antigo */}
-          <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
-            <defs>
-              <linearGradient id="logo-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#8f88ff" />
-                <stop offset="1" stopColor="#5b4fe0" />
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#logo-grad)" />
-            <path
-              d="M7 21l5-6 4 3.5L21.5 11l3.5 4"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="25" cy="15" r="1.6" fill="#fff" />
-          </svg>
+          <Logo className="h-8 w-8 shrink-0" />
           <span className="bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-lg font-semibold tracking-tight text-transparent">
             Super Scraper
           </span>
