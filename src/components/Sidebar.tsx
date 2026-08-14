@@ -137,7 +137,9 @@ export default function Sidebar() {
           </span>
         </div>
 
-        <nav className="flex-1 space-y-1.5">
+        {/* itens maiores + mais espaçados: só 9 links num painel que estica até
+            o fim da tela sobrava muito vazio embaixo com o tamanho antigo */}
+        <nav className="flex-1 space-y-2.5">
           {NAV.map((item) => {
             const active =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -145,17 +147,17 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-3 transition duration-200 ease-spring active:scale-[0.98] ${
+                className={`group flex items-center gap-3.5 rounded-xl px-3.5 py-3.5 transition duration-200 ease-spring active:scale-[0.98] ${
                   active
                     ? "bg-gradient-to-r from-sun-500/25 to-transparent ring-1 ring-sun-400/40"
-                    : "hover:bg-white/5"
+                    : "hover:bg-white/[0.07]"
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition duration-200 ease-spring ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition duration-200 ease-spring ${
                     active
                       ? "bg-sun-400 text-ink-900 shadow-[0_0_14px_rgba(232,194,100,0.35)]"
-                      : "bg-white/5 text-zinc-400 group-hover:text-zinc-200"
+                      : "bg-white/[0.08] text-zinc-200 group-hover:text-white"
                   }`}
                 >
                   <svg
@@ -165,7 +167,7 @@ export default function Sidebar() {
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-[18px] w-[18px]"
+                    className="h-5 w-5"
                     aria-hidden
                   >
                     {ICONS[item.icon]}
@@ -174,12 +176,12 @@ export default function Sidebar() {
                 <span className="min-w-0">
                   <span
                     className={`block truncate text-sm font-medium ${
-                      active ? "text-sun-300" : "text-zinc-200"
+                      active ? "text-sun-300" : "text-zinc-100"
                     }`}
                   >
                     {item.label}
                   </span>
-                  <span className="block truncate text-[11px] text-zinc-500">{item.hint}</span>
+                  <span className="block truncate text-xs text-zinc-400">{item.hint}</span>
                 </span>
               </Link>
             );
