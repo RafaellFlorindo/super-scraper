@@ -28,11 +28,11 @@ export async function register() {
   }
 
   const cwd = process.cwd();
-  const tsxBin = path.join(cwd, "node_modules", ".bin", process.platform === "win32" ? "tsx.cmd" : "tsx");
+  const tsxCli = path.join(cwd, "node_modules", "tsx", "dist", "cli.mjs");
   const logPath = path.join(cwd, "worker.log");
   const log = fs.openSync(logPath, "a");
 
-  const worker = spawn(tsxBin, ["scripts/worker.ts"], {
+  const worker = spawn(process.execPath, [tsxCli, "scripts/worker.ts"], {
     cwd,
     stdio: ["ignore", log, log],
     windowsHide: true,

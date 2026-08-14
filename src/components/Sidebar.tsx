@@ -20,11 +20,6 @@ const ICONS: Record<string, React.ReactNode> = {
       <path d="M18 14.5 18.8 17l2.5.9-2.5.9-.8 2.5-.9-2.5-2.5-.9 2.5-.9.9-2.5Z" />
     </>
   ),
-  traqueamento: (
-    <>
-      <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
-    </>
-  ),
   funis: (
     <>
       <path d="M3 4h18l-7 8v7l-4 2v-9L3 4Z" />
@@ -70,9 +65,8 @@ const ICONS: Record<string, React.ReactNode> = {
 };
 
 // Ordem pensada como um funil de uso: minerar -> ver quem escala -> produzir
-// -> mapear destino -> clonar -> acompanhar o próprio resultado. Traqueamento
-// e Meu Perfil ficam perto, porque o traqueamento é sobre o SEU faturamento,
-// não o de outra pessoa. Configurações sempre por último.
+// -> mapear destino -> clonar -> acompanhar o próprio resultado.
+// Configurações sempre por último.
 const NAV = [
   { href: "/", icon: "banco", label: "Banco de Anúncios", hint: "minerar e filtrar" },
   { href: "/historico", icon: "historico", label: "Histórico", hint: "quem está escalando" },
@@ -81,7 +75,6 @@ const NAV = [
   { href: "/funil-hacking", icon: "hacking", label: "Funil Hacking", hint: "faturamento estimado" },
   { href: "/analise-ofertas", icon: "analise", label: "Análise de Ofertas", hint: "subindo ou caindo" },
   { href: "/clones", icon: "clones", label: "Páginas Clonadas", hint: "clonar e hospedar" },
-  { href: "/traqueamento", icon: "traqueamento", label: "Traqueamento", hint: "suas vendas e ROI" },
   { href: "/perfil", icon: "perfil", label: "Meu Perfil", hint: "conta e conquistas" },
   { href: "/config", icon: "config", label: "Configurações", hint: "chaves e coleta" },
 ];

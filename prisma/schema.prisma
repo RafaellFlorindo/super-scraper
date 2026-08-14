@@ -129,20 +129,6 @@ model Sale {
   @@index([utmCampaign])
 }
 
-/// Gasto de anúncio lançado à mão, por campanha e por dia.
-/// Sem isso não existe ROI — a plataforma de checkout só conhece a receita.
-model AdSpend {
-  id          String   @id @default(cuid())
-  utmCampaign String
-  day         DateTime
-  amountCents Int
-  note        String?
-  createdAt   DateTime @default(now())
-
-  @@unique([utmCampaign, day])
-  @@index([day])
-}
-
 /// Log cru de tudo que chega nos webhooks, inclusive o que falhou em processar.
 /// É o que salva a vida quando uma plataforma muda o formato do payload.
 model WebhookEvent {
