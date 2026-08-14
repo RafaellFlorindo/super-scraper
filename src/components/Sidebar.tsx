@@ -83,16 +83,21 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    // O aside estica na altura toda da página (flex stretch), e a decoração
-    // fica num wrapper com overflow próprio. Colocar overflow-hidden direto no
-    // aside quebrava o sticky do miolo e fazia o degradê vazar por cima do
-    // conteúdo, escondendo a página inteira atrás do azul.
+    // O aside estica na altura toda da página (flex stretch): numa página
+    // curta (Funil Hacking) essa altura é ~a tela, numa longa (Banco de
+    // Anúncios com dezenas de cards) é vários "scrolls" de altura. A
+    // decoração antiga usava `absolute inset-0` DENTRO do aside, então
+    // "bottom-0"/"top-16" eram relativos a essa altura variável — o degradê e
+    // os brilhos apareciam esticados ou espremidos de forma diferente em cada
+    // rota. Trocado para `fixed`, preso à viewport: sempre a mesma altura,
+    // sempre o mesmo desenho, não importa o tamanho da página.
     <aside className="relative w-64 shrink-0 border-r border-white/5">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* degradê azul-noite com brilho violeta, no clima de dashboard de exchange */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#191645] via-[#100f2b] to-[#07070f]" />
+      <div className="pointer-events-none fixed inset-y-0 left-0 w-64 overflow-hidden">
+        {/* degradê vertical preto/roxo com brilho branco subindo do rodapé */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1030] via-black to-black" />
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-white/[0.09] via-[#4f2fd0]/25 to-transparent" />
         <div className="absolute -left-20 top-16 h-72 w-72 rounded-full bg-[#4f46e5]/25 blur-3xl" />
-        <div className="absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-gold-500/20 blur-3xl" />
+        <div className="absolute -right-16 bottom-10 h-60 w-60 rounded-full bg-gold-500/20 blur-3xl" />
         {/* textura de pontos, como no cartão do plano */}
         <div
           className="absolute inset-0 opacity-[0.14]"
