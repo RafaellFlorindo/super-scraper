@@ -9,17 +9,16 @@ import { card } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
 
-const brl = (c: number) =>
-  (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const numero = (n: number) => n.toLocaleString("pt-BR");
 
 export default async function Perfil() {
   const sessionUser = await currentUser();
   if (!sessionUser) redirect("/api/auto-login");
 
-  const [user, achievements, vendas] = await Promise.all([
+  const [user, achievements, coletas] = await Promise.all([
     db.user.findUnique({ where: { id: sessionUser.id } }),
     computeAchievements(),
-    db.sale.count({ where: { status: "paid" } }),
+    db.miningRun.count({ where: { status: "done" } }),
   ]);
   if (!user) redirect("/api/auto-login");
 
@@ -57,8 +56,8 @@ export default async function Perfil() {
         <div className="flex flex-col gap-6">
           {/* resumo rápido no topo, estilo Kiwify */}
           <div className="grid grid-cols-3 gap-3">
-            <Resumo label="Faturamento vitalício" valor={brl(achievements.totalCents)} destaque />
-            <Resumo label="Vendas pagas" valor={String(vendas)} />
+            <Resumo label="Anúncios minerados" valor={numero(achievements.total)} destaque />
+            <Resumo label="Coletas realizadas" valor={numero(coletas)} />
             <Resumo label="Membro desde" valor={membro} />
           </div>
 
@@ -66,7 +65,7 @@ export default async function Perfil() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🏆</span>
-                <h2 className="text-sm font-medium text-zinc-100">Caminho de vitórias</h2>
+                <h2 className="text-sm font-medium text-zinc-100">Caminho de mineração</h2>
               </div>
               {achievements.next && (
                 <span className="text-xs text-zinc-500">
@@ -113,12 +112,12 @@ export default async function Perfil() {
                           </div>
                           <div className="mt-1 text-[11px] text-zinc-500">
                             {achievements.progressPct.toFixed(1)}% —{" "}
-                            {brl(Math.max(0, m.amountCents - achievements.totalCents))} para chegar
+                            {numero(Math.max(0, m.count - achievements.total))} anúncios para chegar
                           </div>
                         </div>
                       ) : (
                         <div className="text-xs text-zinc-600">
-                          {brl(Math.max(0, m.amountCents - achievements.totalCents))} para chegar
+                          {numero(Math.max(0, m.count - achievements.total))} anúncios para chegar
                         </div>
                       )}
                     </div>
@@ -128,7 +127,7 @@ export default async function Perfil() {
             </div>
 
             <p className="mt-auto pt-4 text-[11px] text-zinc-600">
-              Calculado a partir das vendas pagas no Traqueamento, menos reembolso e chargeback.
+              Calculado a partir do total de anúncios já minerados no Banco de Anúncios.
             </p>
           </div>
         </div>

@@ -1,15 +1,13 @@
 /**
- * Caminho de vitórias por faturamento, no espírito das premiações da Kiwify.
+ * Caminho de vitórias por volume de mineração, no espírito das premiações da
+ * Kiwify — só que sem Traqueamento não existe mais faturamento pra medir, e o
+ * valor real do app sempre foi o tamanho do banco de anúncios. Marco é
+ * vitalício: total de anúncios minerados desde sempre, não filtrado por
+ * período.
  *
- * Faturamento é **vitalício**, não filtrado por período: é o total desde a
- * primeira venda. Diferente do Traqueamento (que olha 7/30/90 dias), a ideia
- * aqui é o marco histórico, então nenhum filtro de data se aplica.
- *
- * A data de conquista é real, não estimada: soma-se cada venda em ordem
- * cronológica (paga soma, reembolso/chargeback subtrai) e marca-se o instante
- * exato em que o acumulado cruzou cada degrau. Uma vez conquistado, o selo
- * fica — reembolso posterior derruba o saldo mas não tira a medalha, do
- * mesmo jeito que plataforma nenhuma cobra de volta um prêmio já pago.
+ * A data de conquista é real, não estimada: soma-se cada anúncio em ordem
+ * cronológica de mineração e marca-se o instante exato em que o total
+ * cruzou cada degrau.
  */
 import { db } from "./db";
 
@@ -18,18 +16,18 @@ export type Tier = "bronze" | "prata" | "ouro" | "esmeralda" | "esmeralda-escura
 export interface Milestone {
   id: string;
   label: string;
-  amountCents: number;
+  count: number;
   tier: Tier;
 }
 
-/** Mesma escada de valores da referência: 10K, 100K, 1M, 5M, 10M, 25M. */
+/** Escada de volume: começa alcançável em poucos dias, termina em banco grande de verdade. */
 export const MILESTONES: Milestone[] = [
-  { id: "10k", label: "R$ 10 mil", amountCents: 10_000_00, tier: "bronze" },
-  { id: "100k", label: "R$ 100 mil", amountCents: 100_000_00, tier: "prata" },
-  { id: "1m", label: "R$ 1 milhão", amountCents: 1_000_000_00, tier: "ouro" },
-  { id: "5m", label: "R$ 5 milhões", amountCents: 5_000_000_00, tier: "esmeralda" },
-  { id: "10m", label: "R$ 10 milhões", amountCents: 10_000_000_00, tier: "esmeralda-escura" },
-  { id: "25m", label: "R$ 25 milhões", amountCents: 25_000_000_00, tier: "onix" },
+  { id: "100", label: "100 anúncios", count: 100, tier: "bronze" },
+  { id: "500", label: "500 anúncios", count: 500, tier: "prata" },
+  { id: "1000", label: "1.000 anúncios", count: 1_000, tier: "ouro" },
+  { id: "2500", label: "2.500 anúncios", count: 2_500, tier: "esmeralda" },
+  { id: "5000", label: "5.000 anúncios", count: 5_000, tier: "esmeralda-escura" },
+  { id: "10000", label: "10.000 anúncios", count: 10_000, tier: "onix" },
 ];
 
 export interface MilestoneResult extends Milestone {
@@ -37,52 +35,46 @@ export interface MilestoneResult extends Milestone {
 }
 
 export interface Achievements {
-  totalCents: number;
+  total: number;
   milestones: MilestoneResult[];
   /** Primeiro degrau ainda não conquistado, ou null se já bateu o último. */
   next: MilestoneResult | null;
   /** Base do progresso: 0 no degrau anterior, o valor do `next` no topo. */
-  baseCents: number;
+  base: number;
   progressPct: number;
 }
 
 export async function computeAchievements(): Promise<Achievements> {
-  const sales = await db.sale.findMany({
-    where: { status: { in: ["paid", "refunded", "chargeback"] } },
-    orderBy: { occurredAt: "asc" },
-    select: { amountCents: true, status: true, occurredAt: true },
+  const ads = await db.ad.findMany({
+    orderBy: { createdAt: "asc" },
+    select: { createdAt: true },
   });
 
-  let running = 0;
   const achievedAt = new Map<string, Date>();
   let cursor = 0;
 
-  for (const s of sales) {
-    running += s.status === "paid" ? s.amountCents : -s.amountCents;
-
-    // conquista o(s) degrau(ns) que o acumulado ultrapassou nesta venda
-    while (cursor < MILESTONES.length && running >= MILESTONES[cursor].amountCents) {
-      achievedAt.set(MILESTONES[cursor].id, s.occurredAt);
+  ads.forEach((ad, i) => {
+    const total = i + 1;
+    while (cursor < MILESTONES.length && total >= MILESTONES[cursor].count) {
+      achievedAt.set(MILESTONES[cursor].id, ad.createdAt);
       cursor++;
     }
-  }
+  });
 
+  const total = ads.length;
   const milestones: MilestoneResult[] = MILESTONES.map((m) => ({
     ...m,
     achievedAt: achievedAt.get(m.id) ?? null,
   }));
 
   const next = milestones.find((m) => !m.achievedAt) ?? null;
-  const prevAmount = next
-    ? (MILESTONES[MILESTONES.indexOf(next) - 1]?.amountCents ?? 0)
-    : (MILESTONES[MILESTONES.length - 1]?.amountCents ?? 0);
+  const prevCount = next
+    ? (MILESTONES[MILESTONES.indexOf(next) - 1]?.count ?? 0)
+    : (MILESTONES[MILESTONES.length - 1]?.count ?? 0);
 
   const progressPct = next
-    ? Math.max(
-        0,
-        Math.min(100, ((running - prevAmount) / (next.amountCents - prevAmount)) * 100)
-      )
+    ? Math.max(0, Math.min(100, ((total - prevCount) / (next.count - prevCount)) * 100))
     : 100;
 
-  return { totalCents: running, milestones, next, baseCents: prevAmount, progressPct };
+  return { total, milestones, next, base: prevCount, progressPct };
 }
