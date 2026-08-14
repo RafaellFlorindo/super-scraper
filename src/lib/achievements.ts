@@ -20,14 +20,14 @@ export interface Milestone {
   tier: Tier;
 }
 
-/** Escada de volume: começa alcançável em poucos dias, termina em banco grande de verdade. */
+/** Escada de volume: começa alcançável em poucos dias, termina num banco de verdade grande. */
 export const MILESTONES: Milestone[] = [
-  { id: "100", label: "100 anúncios", count: 100, tier: "bronze" },
-  { id: "500", label: "500 anúncios", count: 500, tier: "prata" },
-  { id: "1000", label: "1.000 anúncios", count: 1_000, tier: "ouro" },
-  { id: "2500", label: "2.500 anúncios", count: 2_500, tier: "esmeralda" },
-  { id: "5000", label: "5.000 anúncios", count: 5_000, tier: "esmeralda-escura" },
-  { id: "10000", label: "10.000 anúncios", count: 10_000, tier: "onix" },
+  { id: "1000", label: "1.000 anúncios", count: 1_000, tier: "bronze" },
+  { id: "10000", label: "10.000 anúncios", count: 10_000, tier: "prata" },
+  { id: "50000", label: "50.000 anúncios", count: 50_000, tier: "ouro" },
+  { id: "150000", label: "150.000 anúncios", count: 150_000, tier: "esmeralda" },
+  { id: "500000", label: "500.000 anúncios", count: 500_000, tier: "esmeralda-escura" },
+  { id: "1000000", label: "1.000.000 anúncios", count: 1_000_000, tier: "onix" },
 ];
 
 export interface MilestoneResult extends Milestone {
